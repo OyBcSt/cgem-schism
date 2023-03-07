@@ -3,6 +3,7 @@
 # Note modules must be compiled in bottom-up dependency order.
 
 OBJ  =  \
+	Command_Line_Args.o\
         model_dim.o\
         cgem_vars.o\
         date_time.o\

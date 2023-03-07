@@ -1,5 +1,5 @@
 !!======================================================================     
-    Subroutine CGEM( TC_8, istep, id )
+    Subroutine CGEM( TC_8, istep, id, ivar )
 
 !======================================================================
      use cgem_vars
@@ -15,7 +15,7 @@
     integer(kind=8), intent(in) :: TC_8         ! Model time (seconds from beginning of Jan 1, 2002)
     integer, intent(in)  :: istep     ! Current time step
     integer, intent(in)  :: id     ! 3d element...hopefully get rid of later 
-
+    integer, intent(in)  :: ivar   ! Which variable to print out...just k=1
 !---------------------------------------------------------------------------------------
 ! Local Variables
 !-----------------------------------------------------
@@ -1228,7 +1228,7 @@ write(6,*) "In cgem, updated ALK"
 !--------------------------------------------------------------------
         enddo   ! end of  "do k = 1, nz" 
 
-
+write(6,*) ff(1,ivar)
 ! ----------------------------------------------------------------------
 
 

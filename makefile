@@ -9,7 +9,7 @@
 
 ### Uncomment the next line to enable debugging
 #DFLAGS = -DDEBUG
-DFLAGS = -g -warn -debug all -g -check all -ftrapuv -DDEBUG #-mcmodel=medium -shared-intel 
+#DFLAGS = -g -warn -debug all -g -check all -ftrapuv -DDEBUG #-mcmodel=medium -shared-intel 
 #DFLAGS = -Wall -Wextra -pedantic -fimplicit-none -fbacktrace -D_CGEM -DRDEBUG -DDEBUG 
 #DFLAGS = -g
 
@@ -30,7 +30,6 @@ EXE = CGEM.exe
 
 cgem: ${MOC_OBJ} ${OBJ} ${SDM_OBJ} 
 	$(F90) -o $(EXE) $(FFLAGS) $(DFLAGS) $(INC) $(MOC_OBJ) $(OBJ) $(SDM_OBJ) $(LIBS)
-
 
 #
 ## Pattern rules
