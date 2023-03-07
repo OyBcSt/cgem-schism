@@ -806,7 +806,7 @@ write(6,*) "In cgem, updated iQn"
       &      + (Zgrow(:) - Zresp(:) - Zmort(:))*dTd, 1.)
 
 #ifdef DEBUG
-write(6,*) "In cgem, updated iZ"
+write(6,*) "In cgem, updated iZ, Which_Fluxes(iInRemin),KG_bot=",Which_Fluxes(iInRemin),KG_bot
 #endif
 
 !------------------------------------------------------------------------
@@ -824,6 +824,10 @@ write(6,*) "In cgem, updated iZ"
 !--------------------------------------------------------------
         call Nitrification( O2, NH4, KO2, KNH4, nitmax, T_k(k), R_11 )
 
+#ifdef DEBUG
+write(6,*) "In cgem, called Nitrification" 
+#endif
+
 !------------------------------------------------------------
 ! Carbon Chemistry
 !--------------------------------------------------------------
@@ -836,6 +840,11 @@ write(6,*) "In cgem, updated iZ"
          &    T(k), S(k), m_alk, m_dic, m_si, m_po4, patm, d_sfc(k), m_lat, 1, &
          &    'mol/m3', 'Tinsitu', 'm ', 'u74', 'l  ', 'pf ', 'Pzero  ')
         pH(k) = ph_calc(1)
+#ifdef DEBUG
+write(6,*) "In cgem, called mocsy"
+#endif
+
+
 !------------------------------------------------------------
 ! Particulate and Dissolved dead phytoplankton, rate of remineralization
 !--------------------------------------------------------------

@@ -759,6 +759,27 @@ ff(:,iTr) = Tr_init !1                  !Tr
 S = S_init
 T = T_init
 
+s_x1A=1.
+s_x2A=1.
+s_y1A=1.
+s_y2A=1.
+s_z1A=1.
+s_z2A=1.
+
+s_x1Z=1.
+s_x2Z=1.
+s_y1Z=1.
+s_y2Z=1.
+s_z1Z=1.
+s_z2Z=1.
+
+!Stoichiometry of x,y is read in, but Z assumed to be 1
+stoich_z1R = 1.
+stoich_z2R = 1.
+stoich_z1BC = 1.
+stoich_z2BC = 1.
+
+
 #ifdef DEBUG
 write(6,*) "S,T",S(1),T(1)
 write(6,*) "ff(1)",ff(1,:)
