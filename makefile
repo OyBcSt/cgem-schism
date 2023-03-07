@@ -9,7 +9,7 @@
 
 ### Uncomment the next line to enable debugging
 #DFLAGS = -DDEBUG
-#DFLAGS = -g -warn -debug all -g -check all -ftrapuv#  -DDEBUG #-mcmodel=medium -shared-intel 
+DFLAGS = -g -warn -debug all -g -check all -ftrapuv -DDEBUG #-mcmodel=medium -shared-intel 
 #DFLAGS = -Wall -Wextra -pedantic -fimplicit-none -fbacktrace -D_CGEM -DRDEBUG -DDEBUG 
 #DFLAGS = -g
 
@@ -19,24 +19,31 @@
 #LIBS  = -L. -L/usr/local/apps/pnetcdf-1.9.0/intel-18.0/lib -lpnetcdf -L/usr/local/apps/netcdf-4.6.3/intel-18.0/lib -lnetcdff -lnetcdf
 
 ### =============== End User Modifiable Section  =============== ####
+include cgem_src/src_files
+include moc_src/src_files
+include sdm_src/src_files
+cgemdir=cgem_src
+mocdir=moc_src
+sdmdir=sdm_src
 
 EXE = CGEM.exe
 
-OBJ  =  \
-	cgem_vars.o\
-        sgrid.o\
-        cgem.o\
-        main.o
-
-cgem: ${OBJ} 
-	$(F90) -o $(EXE) $(FFLAGS) $(DFLAGS) $(INC) $(OBJ) $(LIBS)
+cgem: ${MOC_OBJ} ${OBJ} ${SDM_OBJ} 
+	$(F90) -o $(EXE) $(FFLAGS) $(DFLAGS) $(INC) $(MOC_OBJ) $(OBJ) $(SDM_OBJ) $(LIBS)
 
 
 #
 ## Pattern rules
 #
-$(OBJ):%.o: %.F90
+$(OBJ):%.o: $(cgemdir)/%.F90
 	$(F90) -c $(FFLAGS) $(DFLAGS) $<
+
+$(SDM_OBJ): %.o: $(sdmdir)/%.f
+	$(F90) -c $(FFLAGS_SDM) $<
+
+$(MOC_OBJ):%.o: $(mocdir)/%.F90
+	$(F90) -c $(FFLAGS) $(DFLAGS)  $<
+
 
 clean:
 	rm -f *.o ${EXE} *.mod *genmod*

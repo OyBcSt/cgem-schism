@@ -25,11 +25,11 @@ subroutine cgem(it)
     real    :: Agrow                       ! Phytoplankton growth (cells/m3/d)
     real, dimension(nospA,km) :: Agrow_k  ! Phytoplankton growth (cells/m3/d)
     real    :: uA                 ! Specific growth rate (1/d)
-    real    :: uA_k(km,nospA)    ! Specific growth rate (1/d)
-    real    :: uN_k(km,nospA)    ! Nitrogen Limited growth rate (1/d)
-    real    :: uP_k(km,nospA)    ! Phosphorus limited growth rate (1/d)
-    real    :: uE_k(km,nospA)    ! Light limited growth rate (1/d)
-    real    :: uSi_k(km,nospA)   ! Silica limited growth rate (1/d)
+    real    :: uA_k(nospA,km)    ! Specific growth rate (1/d)
+    real    :: uN_k(nospA,km)    ! Nitrogen Limited growth rate (1/d)
+    real    :: uP_k(nospA,km)    ! Phosphorus limited growth rate (1/d)
+    real    :: uE_k(nospA,km)    ! Light limited growth rate (1/d)
+    real    :: uSi_k(nospA,km)   ! Silica limited growth rate (1/d)
     real    :: f_Qn(nospA)        ! Quota model for N
     real    :: f_Qp(nospA)        ! Quota model for P
     real    :: Qn(nospA,km) ! Phytoplankton Nitrogen Quota (mmol-N/cell)
@@ -155,9 +155,9 @@ subroutine cgem(it)
 
 !      CGEM variables
        do isp = 1, nospA
-               A(k,isp) = ff(id,k,isp) ! Phytoplankton in group isp, cells/m3
-               Qn(k,isp) = ff(id,k,iQn(1)-1+isp)
-               Qp(k,isp) = ff(id,k,iQp(1)-1+isp)
+               A(isp,k) = ff(id,k,isp) ! Phytoplankton in group isp, cells/m3
+               Qn(isp,k) = ff(id,k,iQn(1)-1+isp)
+               Qp(isp,k) = ff(id,k,iQp(1)-1+isp)
              enddo
          !Save Zooplanton to k array
              do isp = 1,nospZ
@@ -183,12 +183,6 @@ subroutine cgem(it)
            TR(k)      = ff(id,k,iTR)
      enddo !end loop over layers
 
-      !loop over layers again
-      do k = 1, nz
-
-
-     enddo !end loop over layers
-
 
 !----------------------------------------------------------------
 ! Get chlorophyll-a quantity per layer
@@ -201,6 +195,41 @@ subroutine cgem(it)
           Chla_tot(k) =  Chla_tot(k) + A(isp,k) * Qc(isp) * 12. * (1./CChla(isp))
        enddo ! isp = 1, nospA
     enddo ! k = 1, nz
+
+#ifdef DEBUG 
+write(6,*) "Chla_tot", Chla_tot
+write(6,*) "A(:,1)",A(1,:)
+write(6,*) "Qc",Qc
+write(6,*) "CChla",CChla
+#endif
+
+!LIGHT MODEL
+
+! Define PARsurf
+
+!calc_Agrow needs PARdepth_k, Irradiance at center of layer k (quanta/cm2/s)
+
+!                 !--------------------------------------------
+!         case (1)! Upgraded form of the underwater light model
+!                 ! developed by Brad Penta of NRL is used
+!                 !--------------------------------------------
+
+                do k=1,nz
+                  do isp=1,nospA
+                  if( A(isp,k) .lt. 0 ) then
+                    write(6,*) "A_k le 0,Chla,A_k",k,Chla_tot(k),A(isp,k)
+                  endif
+                  enddo
+                enddo
+
+                 if(nz.gt.0) call Call_IOP_PAR(                        &
+                 & PARsurf    , SunZenithAtm,                          &
+                 & CDOM     , Chla_tot,                            &
+                 & OM1A     , OM1Z,                                &
+                 & OM1SPM   , OM1BC, d(i,j,:),                     &
+                 & nz         , d_sfc(i,j,:),                          &
+                 & PAR_percent_k,                                      &
+                 & PARbot     , PARdepth_k                         )
 
 
 

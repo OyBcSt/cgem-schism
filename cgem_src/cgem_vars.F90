@@ -2,6 +2,7 @@ module cgem_vars
 
 !CGEM STATE VARIABLES
 use, intrinsic :: iso_fortran_env, only: stderr => error_unit
+use model_dim
 !use schism_glbl, only: rkind
 
 implicit none
@@ -11,8 +12,70 @@ SAVE
 !Grid parameters
 integer :: nospA
 integer :: nospZ
-integer :: km
-integer :: nea
+
+!--Run Specifics---------------
+integer iYrS,iMonS,iDayS,iHrS,iMinS,iSecS
+integer iYrE,iMonE,iDayE,iHrE,iMinE,iSecE
+integer dT
+
+!Constants
+real, parameter :: SDay = 86400.0  ! # of sec in 24 hr day
+integer :: StepsPerDay                   ! Time steps per day
+real :: dTd                           ! Timestep in days 
+
+!Rad
+real, allocatable :: aDailyRad(:)  ! Previous day's irradiance per layer
+real, allocatable :: aRadSum(:) 
+!This should all be from SCHISM
+!Solar radiation
+real :: Rad
+!Lat/lon of elements
+real :: lat,lon
+!Depth stuff
+real, allocatable :: d(:) ! depth cell bottom to surface
+real, allocatable :: d_sfc(:) ! depth cell center to surface 
+real, allocatable :: dz(:)   !Thickness of cell
+!'tracers'
+real, allocatable :: S(:),T(:)
+!Beginning of year for date stammp
+integer :: iYr0
+
+!Stoichiometry
+real, dimension(:,:), allocatable :: s_x1A,s_x2A,s_y1A,s_y2A
+real, dimension(:,:), allocatable :: s_z1A,s_z2A
+real, dimension(:,:), allocatable :: s_x1Z,s_x2Z,s_y1Z,s_y2Z
+real, dimension(:,:), allocatable :: s_z1Z,s_z2Z
+real Stoich_x1A_init,Stoich_y1A_init,Stoich_z1A_init
+real Stoich_x2A_init,Stoich_y2A_init,Stoich_z2A_init
+real Stoich_x1Z_init,Stoich_y1Z_init,Stoich_z1Z_init
+real Stoich_x2Z_init,Stoich_y2Z_init,Stoich_z2Z_init
+
+!Module Which_Flux
+! =========================================================
+! Define which fluxes shall be used
+! =========================================================
+INTEGER, PARAMETER :: iO2surf  = 1 !O2 surface flux
+INTEGER, PARAMETER :: iDICsurf = 2 !DIC surface flux
+INTEGER, PARAMETER :: iSOC     = 3 !Sediment Oxygen Consumption
+INTEGER, PARAMETER :: iMPB     = 4 !Microphytobethos
+INTEGER, PARAMETER :: iNutEx   = 5 !Sediment Nutrient Fluxes
+INTEGER, PARAMETER :: iCMAQ    = 6 !CMAQ surface deposition of NH4 and NO3
+INTEGER, PARAMETER :: iInRemin = 7 !Instant Remineralization in bottom layer
+INTEGER, PARAMETER :: iSDM     = 8 !Sediment Diagenesis Model
+INTEGER, PARAMETER :: i_Si      = 9 !Silica (SA, SRP) Fluxes
+
+!Module CGEM_Flux
+! =========================================================
+! Terms for Flux Calculations
+! =========================================================
+       REAL,ALLOCATABLE,SAVE :: Esed(:)
+       REAL,ALLOCATABLE,SAVE :: CBODW(:)
+       REAL,ALLOCATABLE,SAVE :: pH(:)
+
+
+
+!External subroutines
+external           :: DailyRad_init 
 
 !---------------------------------------------------------      
 !-A; Phytoplankton number density (cells/m3);
@@ -117,7 +180,7 @@ integer :: nea
       integer :: nf
 
 !State Variable Array
-      real,allocatable :: ff(:,:,:) !state variable array
+      real,allocatable :: ff(:,:) !state variable array
 
 !----INPUT_VARS_CGEM
 !--Switches in GEM---------
@@ -243,10 +306,14 @@ integer i
 integer ierr
 integer :: counter = 0
 
+
+#ifdef DEBUG
+write(6,*) "Begin cgem_vars_allocate" 
+#endif
+
+
 nospA = 3
 nospZ = 2
-nea = 2
-km = 8
 
 !---------------------------------------------------------      
 !-A; Phytoplankton number density (cells/m3);
@@ -371,9 +438,8 @@ km = 8
 !How many state variables
       nf = iTR
 
-      allocate(ff(nea,km,nf),stat=ierr)
+      allocate(ff(km,nf),stat=ierr)
       if(ierr.ne.0) write(6,*) "error in allocating:ff"
-
 
 !----allocate INPUT_VARS_CGEM
 
@@ -478,6 +544,45 @@ if(ierr.ne.0) write(6,*) "error in allocating:KTg2"
 allocate(Ea(nospA+nospZ),stat=ierr)                     !Ea(nospA+nospZ): Slope of Arrhenius plot(eV)
 if(ierr.ne.0) write(6,*) "error in allocating:Ea"
 
+!Rad
+allocate(aDailyRad(km),aRadSum(km),stat=ierr) ! Previous day's irradiance per layer
+if(ierr.ne.0) write(6,*) "error in allocating:aDailyRad,aRadSum"
+aDailyRad = 1.
+aRadSum = 0.
+
+!Depth stuff
+allocate(d(km),stat=ierr) ! depth cell bottom to surface  
+if(ierr.ne.0) write(6,*) "error in allocating:d"
+allocate(d_sfc(km),stat=ierr) ! depth cell center to surface  
+if(ierr.ne.0) write(6,*) "error in allocating:d_sfc"
+allocate(dz(km),stat=ierr) !Thickness of cell
+if(ierr.ne.0) write(6,*) "error in allocating:dz"
+
+
+
+!'tracers'
+allocate(S(km),stat=ierr) ! Salinity (psu) 
+if(ierr.ne.0) write(6,*) "error in allocating:S"
+allocate(T(km),stat=ierr) ! Temperature (C) 
+if(ierr.ne.0) write(6,*) "error in allocating:T"
+
+!Stoichiometry
+allocate(s_x1A(nea,km),s_x2A(nea,km),s_y1A(nea,km),s_y2A(nea,km),s_z1A(nea,km),s_z2A(nea,km),&
+         s_x1Z(nea,km),s_x2Z(nea,km),s_y1Z(nea,km),s_y2Z(nea,km),s_z1Z(nea,km),s_z2Z(nea,km),stat=ierr)
+if(ierr.ne.0) write(6,*) "error in allocating:stoichiometry"
+
+!Flux
+  allocate(Esed(nea),stat=ierr)
+  if(ierr.ne.0) write(6,*) "error in allocating:Esed"
+  allocate(CBODW(nea),stat=ierr)
+  if(ierr.ne.0) write(6,*) "error in allocating:CBODW"
+  allocate(pH(km),stat=ierr)
+  if(ierr.ne.0) write(6,*) "error in allocating:pH"
+
+#ifdef DEBUG
+write(6,*) "End cgem_vars_allocate"
+#endif
+
 
 return
 end subroutine cgem_vars_allocate
@@ -485,10 +590,15 @@ end subroutine cgem_vars_allocate
 subroutine cgem_init 
 
 integer                          :: istat,iunit
-
+integer :: k
 real sinkA(3),sinkOM1_A,sinkOM2_A,sinkOM1_Z,sinkOM2_Z,sinkOM1_R,sinkOM2_R,sinkOM1_BC,sinkOM2_BC
+real A_init,Qn_init,Qp_init,Z1_init,Z2_init,NO3_init,NH4_init,PO4_init,DIC_init,O2_init
+real OM1_A_init,OM2_A_init,OM1_Z_init,OM2_Z_init,OM1_R_init,OM2_R_init,CDOM_init
+real Si_init,OM1_BC_init,OM2_BC_init,ALK_init,Tr_init,S_init,T_init,depth_in,Rad_in
+real lat_in,lon_in
 character(len=1000) :: line
 !http://degenerateconic.com/namelist-error-checking.html
+namelist /simulation/ iYrS,iMonS,iDayS,iHrS,iMinS,iSecS,iYrE,iMonE,iDayE,iHrE,iMinE,iSecE,dT,lon_in,lat_in,depth_in,Rad_in 
 namelist /switches/ Which_fluxes,Which_temperature,Which_uptake,Which_quota,Which_irradiance,Which_chlaC,Which_photosynthesis,Which_growth
 namelist /optics/ Kw,Kcdom,Kspm,Kchla,astar490,aw490,astarOMA,astarOMZ,astarOMR,astarOMBC,PARfac
 namelist /temperature/ Tref,KTg1,KTg2,Ea
@@ -497,6 +607,9 @@ namelist /zooplankton/ Zeffic,Zslop,Zvolcell,ZQc,ZQn,ZQp,ZKa,Zrespg,Zrespb,Zumax
 namelist /OM/ KG1,KG2,KG1_R,KG2_R,KG1_BC,KG2_BC,KNH4,nitmax,KO2,KstarO2,KNO3,pCO2,&
  stoich_x1R,stoich_y1R,stoich_x2R,stoich_y2R,stoich_x1BC,stoich_y1BC,stoich_x2BC,stoich_y2BC,&
  sinkOM1_A,sinkOM2_A,sinkOM1_Z,sinkOM2_Z,sinkOM1_R,sinkOM2_R,sinkOM1_BC,sinkOM2_BC,KGcdom,CF_SPM,KG_bot
+namelist /init/ A_init,Qn_init,Qp_init,Z1_init,Z2_init,NO3_init,NH4_init,PO4_init,DIC_init,O2_init,&
+ OM1_A_init,OM2_A_init,OM1_Z_init,OM2_Z_init,OM1_R_init,OM2_R_init,CDOM_init,&
+ Si_init,OM1_BC_init,OM2_BC_init,ALK_init,Tr_init,S_init,T_init
 
 !Later, look at this python namelist thing:
 !https://github.com/marshallward/f90nml
@@ -505,7 +618,22 @@ namelist /OM/ KG1,KG2,KG1_R,KG2_R,KG1_BC,KG2_BC,KNH4,nitmax,KO2,KstarO2,KNO3,pCO
 !(conda activate it)
 !conda install -c conda-forge ascii_graph
 
+#ifdef DEBUG
+write(6,*) "Begin cgem_init"
+#endif
+
+
 open(action='read',file='cgem.nml',iostat=istat,newunit=iunit)
+
+!namelist /simulation/
+read(nml=simulation,iostat=istat,unit=iunit)
+if (istat /= 0) then
+ backspace(iunit)
+ read(iunit,fmt='(A)') line
+ write(6,'(A)') &
+        'Invalid line in namelist simulation: '//trim(line)
+endif
+
 
 !namelist /switches/
 read(nml=switches,iostat=istat,unit=iunit)
@@ -545,6 +673,8 @@ if (istat /= 0) then
         'Invalid line in namelist: '//trim(line)
 endif
 
+ediblevector=0.5
+
 !namelist /zooplankton/
 read(nml=zooplankton,iostat=istat,unit=iunit)
 if (istat /= 0) write (stderr, '("Error: invalid Namelist format, zooplankton")')
@@ -565,11 +695,122 @@ if (istat /= 0) then
         'Invalid line in namelist: '//trim(line)
 endif
 
+!namelist /init/
+read(nml=init,iostat=istat,unit=iunit)
+if (istat /= 0) write (stderr, '("Error: invalid Namelist format, OM")')
+if (istat /= 0) then
+ backspace(iunit)
+ read(iunit,fmt='(A)') line
+ write(6,'(A)') &
+        'Invalid line in namelist: '//trim(line)
+endif
+
+
 close(iunit)
+
+
+!Set lat/lon
+lat = lat_in
+lon = lon_in
+!Radiation
+Rad = Rad_in
+!Define depths
+d = depth_in          !Depth of the water column
+dz = depth_in/km      !Thickness of a cell (they are the same for now)
+
+!Distance from surface to bottom of cell
+d(1) = dz(1)
+!Distance from surface to center of cell
+d_sfc(1) = dz(1)/2.   !First cell is half of total thickness of first cell
+do k=2,km   !Okay, this is stupid and only works for this case...fix later
+ d(k) = d(k-1) + dz(k)
+ d_sfc(k) = d_sfc(k-1) + dz(k)
+enddo
+
+!Initialize Time stuff
+dTd = dT/SDay         ! Timestep length in units of days
+StepsPerDay = SDay / dT ! Time steps in a day
+
+!namelist /init/ A_init,Qn_init,Qp_init,Z1_init,Z2_init,NO3_init,NH4_init,PO4_init,DIC_init,O2_init,&
+! OM1_A_init,OM2_A_init,OM1_Z_init,OM2_Z_init,OM1_R_init,OM2_R_init,CDOM_init,Si_init,OM1_BC_init,OM2_BC_init,ALK_init,Tr_init
+!Initialize ff for testing
+ff(:,iA(1:3)) = A_init !6.e7      !A
+ff(:,iQn(1:3)) = Qn_init !0.30649887E-8           !Qn
+ff(:,iQp(1:3)) = Qp_init !0.19438481E-9           !Qp
+ff(:,iZ(1)) = Z1_init !150.0508                !Z1 
+ff(:,iZ(2)) = Z2_init !1505.0508               !Z2
+ff(:,iNO3) = NO3_init !5.              !NO3 
+ff(:,iNH4) = NH4_init !1.              !NH4 
+ff(:,iPO4) = PO4_init !2.              !PO4 
+ff(:,iDIC) = DIC_init !2134            !DIC 
+ff(:,iO2) = O2_init !172.            !O2 
+ff(:,iOM1_A) = OM1_A_init !0. !0.40379810                  !OM1_A 
+ff(:,iOM2_A) = OM2_A_init !0. !8.8202314                   !OM2_A 
+ff(:,iOM1_Z) = OM1_Z_init !0. !78.162582                   !OM1_fp 
+ff(:,iOM2_Z) = OM2_Z_init !0. !225.37767                   !OM2_fp 
+ff(:,iOM1_R) = OM1_R_init !0.0000000               !OM1_rp 
+ff(:,iOM2_R) = OM2_R_init !0.0000000               !OM2_rp 
+ff(:,iCDOM) = CDOM_init !2.              !CDOM 
+ff(:,iSi) = Si_init !15.             !Si 
+ff(:,iOM1_BC) = OM1_BC_init !0. !157.09488                   !OM1_bc 
+ff(:,iOM2_BC) = OM2_BC_init !0. !333.65701                   !OM2_bc
+ff(:,iALK) = ALK_init !2134               !ALK 
+ff(:,iTr) = Tr_init !1                  !Tr
+S = S_init
+T = T_init
+
+#ifdef DEBUG
+write(6,*) "S,T",S(1),T(1)
+write(6,*) "ff(1)",ff(1,:)
+write(6,*) "End cgem_init"
+#endif
+
 
 end subroutine cgem_init
 
+subroutine rad_init(TC_8)
 
+   implicit none
+
+!inputs
+    integer(8), intent(in) ::  TC_8  ! Model time (seconds from beginning of Jan 1, 2002)
+
+!loops
+    integer k,isp
+
+! Variables needed for light routine and calc_Agrow
+    real       :: aDailyRad_k(km)
+    real, dimension(nospA,km) :: A_k    ! Phytoplankton number density (cells/m3)
+    real, dimension(km) :: OM1A_k, OM1Z_k, OM1SPM_k, OM1BC_k !POC in g/m3
+    real, dimension(km) :: CDOM_k    ! CDOM, ppb
+    real, parameter :: C_cf  = 12.0E-3    ! C conversion factor (mmol-C/m3 to g-C/m3) 
+
+! SAVE KGs for instant remineralization
+    real, save :: KG1_save, KG2_save
+
+       ! Initialize previous day's irradiance for Chl:C calculation
+       ! These duplicated lines execute only once for init
+                do k = 1, km 
+                   do isp = 1, nospA
+                      A_k(isp,k) = ff(k,isp) ! Phytoplankton in group isp, cells/m3
+                   enddo
+                   CDOM_k(k)  = ff(k,iCDOM)  ! CDOM is in ppb
+                                 ! Convert mmol/m3 to g carbon/m3; CF_SPM is
+                                 ! river specific
+                                 ! and converts river OM to riverine SPM
+                   OM1SPM_k(k) = (ff(k,iOM1_R) * C_cf) / CF_SPM
+                   OM1Z_k(k)   = ff(k,iOM1_Z)  * C_cf   ! Convert mmol/m3 to g carbon/m3
+                   OM1A_k(k)   = ff(k,iOM1_A)  * C_cf   ! Convert mmol/m3 to g carbon/m3
+                   OM1BC_k(k)  = ff(k,iOM1_BC) * C_cf   ! Convert mmol/m3 to g carbon/m3
+                enddo
+                call DailyRad_init(TC_8, lat, lon, d, dz, d_sfc, A_k, &
+                     & CDOM_k, OM1A_k, OM1Z_k, OM1SPM_k, OM1BC_k, aDailyRad_k,km)
+                aDailyRad = aDailyRad_k
+
+     KG1_save = KG1
+     KG2_save = KG2
+
+end subroutine rad_init
 
 end module cgem_vars
 

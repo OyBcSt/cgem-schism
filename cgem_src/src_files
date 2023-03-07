@@ -1,0 +1,28 @@
+# This is the list of objects to compile. Edit as necessary to reflect
+# source file changes.
+# Note modules must be compiled in bottom-up dependency order.
+
+OBJ  =  \
+        model_dim.o\
+        cgem_vars.o\
+        date_time.o\
+        sgrid.o\
+        Calc_Chla.o\
+        DailyRad_init.o\
+	cgem.o\
+        SDM.o\
+	func_E.o\
+	func_Qs.o\
+	func_S.o\
+	func_T.o\
+	T_GoMDOM.o\
+	Nitrification.o\
+	rnitrate.o\
+	calc_Agrow.o\
+	reaction.o\
+	Q10_T.o\
+	MOD_UTILITIES.o\
+	calc_solar_zenith.o\
+	Light_GoMDOM.o\
+	Call_IOP_PAR.o\
+        main.o

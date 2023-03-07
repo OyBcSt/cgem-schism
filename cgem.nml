@@ -6,6 +6,29 @@
 !    Values can be separated by commas or spaces.
 !(5) space allowed before/after '='
 
+
+&simulation
+!Simulation Specifics
+!namelist /simulation/ iYrS,iMonS,iDayS,iHrS,iMinS,iSecS,iYrE,iMonE,iDayE,iHrE,iMinE,iSecE,dT,lon_in,lat_in,depth_in
+iYrS = 2006       !- starting time iYrS
+iMonS = 1         !- starting time iMonS
+iDayS = 1         !- starting time iDayS
+iHrS = 18         !- starting time iHrS
+iMinS = 0         !- starting time iMinS
+iSecS = 0         !- starting time iSecS
+iYrE = 2006       !- ending time iYrE
+iMonE = 12        !- ending time iMonE
+iDayE = 31        !- ending time iDayE
+iHrE = 18         !- ending time iHrE
+iMinE = 0         !- ending time iMinE
+iSecE = 0         !- ending time iSecE
+dT = 3600         !- dT (timestep, seconds)
+lon_in = -92.39   !- Cell lon 
+lat_in = 29.03    !- Cell lat
+depth_in = 20.       !- Water depth from surface to bottom
+Rad_in = 1.       !Rad
+/
+
 &switches
 !------------------------------------------------------------------------
 !Switches in CGEM
@@ -146,4 +169,34 @@ sinkOM1_BC = 0.          !sinkOM2_BC: sinking rate
 KGcdom = 0.01		!KGcdom: decay rate of CDOM, 1/day
 CF_SPM = 0.018		!CF_SPM: conversion factor for river OM to river SPM
 KG_bot = 92000.	        !KG_bot, turnover rate for k=20 if Instant Remineralization is used (see Which_fluxes above)
+/
+
+&init
+!namelist /init/ A_init,Qn_init,Qp_init,Z1_init,Z2_init,NO3_init,NH4_init,PO4_init,DIC_init,O2_init,&
+! OM1_A_init,OM2_A_init,OM1_Z_init,OM2_Z_init,OM1_R_init,OM2_R_init,CDOM_init,Si_init,OM1_BC_init,OM2_BC_init,ALK_init,Tr_init
+!Initialize ff for testing
+A_init = 6.e7      !A
+Qn_init = 0.30649887E-8           !Qn
+Qp_init = 0.19438481E-9           !Qp
+Z1_init = 150.0508                !Z1 
+Z2_init = 1505.0508               !Z2
+NO3_init = 5.              !NO3 
+NH4_init = 1.              !NH4 
+PO4_init = 2.              !PO4 
+DIC_init = 2134            !DIC 
+O2_init = 172.            !O2 
+OM1_A_init = 0. !0.40379810                  !OM1_A 
+OM2_A_init = 0. !8.8202314                   !OM2_A 
+OM1_Z_init = 0. !78.162582                   !OM1_fp 
+OM2_Z_init = 0. !225.37767                   !OM2_fp 
+OM1_R_init = 0.0000000               !OM1_rp 
+OM2_R_init = 0.0000000               !OM2_rp 
+CDOM_init = 2.              !CDOM 
+Si_init = 15.             !Si 
+OM1_BC_init = 0. !157.09488                   !OM1_bc 
+OM2_BC_init = 0. !333.65701                   !OM2_bc
+ALK_init = 2134               !ALK 
+Tr_init = 1                  !Tr
+S_init = 30.  !Salinity (psu)
+T_init = 16.  !Temperature (C)
 /
