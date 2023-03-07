@@ -1,9 +1,9 @@
-!!======================================================================     
+!======================================================================     
 subroutine cgem(it)
 
 !======================================================================
   use cgem_vars
-  use schism_glbl, only: rkind
+!  use schism_glbl, only: rkind
 
 !SCHISM global variables
 !  use schism_glbl, only : rkind,dt,ne,nea,npa,nvrt,bdy_frc,idry_e,kbe,ze,&
@@ -17,122 +17,122 @@ subroutine cgem(it)
   integer :: id,nz,k,isp
 
 !From the hydro
-    real(rkind), dimension(km) :: S, T  ! Salinity and Temperature(Celsius)
+    real, dimension(km) :: S, T  ! Salinity and Temperature(Celsius)
 !-------------------------------------------------------------------------
 ! Phytoplankton parameters
 ! Phytoplankton uptake and growth
-    real(rkind), dimension(nospA,km) :: A      ! Phytoplankton number density (cells/m3)
-    real(rkind)    :: Agrow                       ! Phytoplankton growth (cells/m3/d)
-    real(rkind), dimension(nospA,km) :: Agrow_k  ! Phytoplankton growth (cells/m3/d)
-    real(rkind)    :: uA                 ! Specific growth rate (1/d)
-    real(rkind)    :: uA_k(km,nospA)    ! Specific growth rate (1/d)
-    real(rkind)    :: uN_k(km,nospA)    ! Nitrogen Limited growth rate (1/d)
-    real(rkind)    :: uP_k(km,nospA)    ! Phosphorus limited growth rate (1/d)
-    real(rkind)    :: uE_k(km,nospA)    ! Light limited growth rate (1/d)
-    real(rkind)    :: uSi_k(km,nospA)   ! Silica limited growth rate (1/d)
-    real(rkind)    :: f_Qn(nospA)        ! Quota model for N
-    real(rkind)    :: f_Qp(nospA)        ! Quota model for P
-    real(rkind)    :: Qn(nospA,km) ! Phytoplankton Nitrogen Quota (mmol-N/cell)
-    real(rkind)    :: Qp(nospA,km) ! Phytoplankton Phosphorus Quota (mmol-P/cell)
-    real(rkind)    :: vN    ! Phytoplankton uptake rate of Nitrogen (mmol-N/cell/d)
-    real(rkind)    :: vP    ! Phytoplankton uptake rate of Phosphorus (mmol-P/cell/d)
-    real(rkind)    :: vSi   ! Phytoplankton uptake rate of Silica (mmol-Si/cell/d)
-    real(rkind)    :: AupN  ! Total Phytoplankton uptake of Nitrogen (mmol-N/m3/d)
-    real(rkind)    :: AupP  ! Total Phytoplankton uptake of Phosphorus (mmol-P/m3/d)
-    real(rkind)    :: AupSi ! Total Phytoplankton uptake of Silica (mmol-Si/m3/d)
+    real, dimension(nospA,km) :: A      ! Phytoplankton number density (cells/m3)
+    real    :: Agrow                       ! Phytoplankton growth (cells/m3/d)
+    real, dimension(nospA,km) :: Agrow_k  ! Phytoplankton growth (cells/m3/d)
+    real    :: uA                 ! Specific growth rate (1/d)
+    real    :: uA_k(km,nospA)    ! Specific growth rate (1/d)
+    real    :: uN_k(km,nospA)    ! Nitrogen Limited growth rate (1/d)
+    real    :: uP_k(km,nospA)    ! Phosphorus limited growth rate (1/d)
+    real    :: uE_k(km,nospA)    ! Light limited growth rate (1/d)
+    real    :: uSi_k(km,nospA)   ! Silica limited growth rate (1/d)
+    real    :: f_Qn(nospA)        ! Quota model for N
+    real    :: f_Qp(nospA)        ! Quota model for P
+    real    :: Qn(nospA,km) ! Phytoplankton Nitrogen Quota (mmol-N/cell)
+    real    :: Qp(nospA,km) ! Phytoplankton Phosphorus Quota (mmol-P/cell)
+    real    :: vN    ! Phytoplankton uptake rate of Nitrogen (mmol-N/cell/d)
+    real    :: vP    ! Phytoplankton uptake rate of Phosphorus (mmol-P/cell/d)
+    real    :: vSi   ! Phytoplankton uptake rate of Silica (mmol-Si/cell/d)
+    real    :: AupN  ! Total Phytoplankton uptake of Nitrogen (mmol-N/m3/d)
+    real    :: AupP  ! Total Phytoplankton uptake of Phosphorus (mmol-P/m3/d)
+    real    :: AupSi ! Total Phytoplankton uptake of Silica (mmol-Si/m3/d)
     integer :: RLN   ! Rate Limiting Nutrient of N, P, and Si
  ! Monod equations for phytoplankton
-    real(rkind), dimension(nospA)    :: monodN  !Monod term in nitrogen uptake
-    real(rkind), dimension(nospA)    :: monodP  !Monod term in phosphorus uptake
-    real(rkind), dimension(nospA)    :: monodSi !Monod term in Si uptake
-    real(rkind)    :: Ntotal   ! Total N (mmol/m3)
+    real, dimension(nospA)    :: monodN  !Monod term in nitrogen uptake
+    real, dimension(nospA)    :: monodP  !Monod term in phosphorus uptake
+    real, dimension(nospA)    :: monodSi !Monod term in Si uptake
+    real    :: Ntotal   ! Total N (mmol/m3)
  ! Phytoplankton nutrient loss
-    real(rkind), dimension(nospA)    :: Amort ! Dead phytoplankton (cells/m3/day)
-    real(rkind), dimension(nospA)    :: AexudN_A    ! Phytoplankton group exudation (mmol-N/cell/d)
-    real(rkind), dimension(nospA)    :: AexudP_A    ! Phytoplankton group exudation (mmol-P/cell/d) 
-    real(rkind)    :: AexudN          ! Sum of Exudation of N from all phytoplankton groups (mmol-N/m3/d)
-    real(rkind)    :: AexudP          ! Sum of Exudation of P from all phytoplankton groups (mmol-P/m3/d)
-    real(rkind)    :: Aresp           ! Total respiration from a phytoplankton group (cells/m3/d)
-    real(rkind)    :: Aresp_k(nospA,km) ! Total respiration from a phytoplankton group (cells/m3/d)
-    real(rkind)    :: ArespC          ! Phytoplankton equivalent carbon loss from respiration (mmol-C/m3/d)
+    real, dimension(nospA)    :: Amort ! Dead phytoplankton (cells/m3/day)
+    real, dimension(nospA)    :: AexudN_A    ! Phytoplankton group exudation (mmol-N/cell/d)
+    real, dimension(nospA)    :: AexudP_A    ! Phytoplankton group exudation (mmol-P/cell/d) 
+    real    :: AexudN          ! Sum of Exudation of N from all phytoplankton groups (mmol-N/m3/d)
+    real    :: AexudP          ! Sum of Exudation of P from all phytoplankton groups (mmol-P/m3/d)
+    real    :: Aresp           ! Total respiration from a phytoplankton group (cells/m3/d)
+    real    :: Aresp_k(nospA,km) ! Total respiration from a phytoplankton group (cells/m3/d)
+    real    :: ArespC          ! Phytoplankton equivalent carbon loss from respiration (mmol-C/m3/d)
 !---------------------------------------------------------
 ! Variables needed for light routine and calc_Agrow
-    real(rkind)   :: SunZenithAtm       ! Solar beam zenith angle
-    real(rkind)   :: calc_solar_zenith  ! Function, calculates solar beam zenith angle
-    real(rkind)   :: Katt               ! Attenuation coefficient for Irradiance model 
-    real(rkind)   :: tmpexp             ! Intermediate calculation
-    real(rkind)   :: PARbotkm1          ! Irradiance at bottom of layer k-1 (quanta/cm2/s)
-    real(rkind)   :: PARtopk            ! Irradiance at top of layer k (quanta/cm2/s)
-    real(rkind)   :: PARsurf            ! Irradiance just below the sea surface (quanta/cm2/s) 
-    real(rkind)   :: PARbot             ! Irradiance at sea floor (quanta/cm2/s)
-    real(rkind)   :: PARdepth_k(km)    ! Irradiance at center of layer k (quanta/cm2/s)
-    real(rkind)   :: PAR_percent_k(km) ! Percent irradiance at center of layer k (quanta/cm2/s)
-    real(rkind)   :: aDailyRad_k(km), aRadSum_k(km)
-    real(rkind), parameter :: RADCONV = 1./6.0221413*1.e-19 ! Convert quanta/cm2/s to mol/m2/s:
+    real   :: SunZenithAtm       ! Solar beam zenith angle
+    real   :: calc_solar_zenith  ! Function, calculates solar beam zenith angle
+    real   :: Katt               ! Attenuation coefficient for Irradiance model 
+    real   :: tmpexp             ! Intermediate calculation
+    real   :: PARbotkm1          ! Irradiance at bottom of layer k-1 (quanta/cm2/s)
+    real   :: PARtopk            ! Irradiance at top of layer k (quanta/cm2/s)
+    real   :: PARsurf            ! Irradiance just below the sea surface (quanta/cm2/s) 
+    real   :: PARbot             ! Irradiance at sea floor (quanta/cm2/s)
+    real   :: PARdepth_k(km)    ! Irradiance at center of layer k (quanta/cm2/s)
+    real   :: PAR_percent_k(km) ! Percent irradiance at center of layer k (quanta/cm2/s)
+    real   :: aDailyRad_k(km), aRadSum_k(km)
+    real, parameter :: RADCONV = 1./6.0221413*1.e-19 ! Convert quanta/cm2/s to mol/m2/s:
                                                !  = quanta/cm2/s * 1
                                                !  mol/Avogadro# * 10,000cm2/m2
                                                !  = (1/6.022e23) * 1.0e4 =
                                                !  (1./6.022)e-23 * 1.0e4
                                                !  = (1./6.0221413)*1.e-19
-    real(rkind), dimension(km) :: Chla_tot  ! Total amount of Chl-a in all the
+    real, dimension(km) :: Chla_tot  ! Total amount of Chl-a in all the
                                      !  phytoplankton species (mg/m3) per cell
-    real(rkind), dimension(nospA,km) :: Chl_C_k     ! Chl:C
-    real(rkind), dimension(km) :: OM1A_k, OM1Z_k, OM1SPM_k, OM1BC_k !POC in g/m3
-    real(rkind), dimension(km) :: CDOM_k    ! CDOM, ppb
-    real(rkind), dimension(km) :: N_k       ! Nitrogen, mmol/m3
-    real(rkind), dimension(km) :: P_k       ! Phosphorus, mmol/m3
-    real(rkind), dimension(km) :: Si_k      ! Silica, mmol/m3
-    real(rkind), dimension(km) :: S_k, T_k  ! Salinity and Temperature(Celsius)
-    real(rkind), parameter :: C_cf  = 12.0E-3    ! C conversion factor (mmol-C/m3 to g-C/m3) 
+    real, dimension(nospA,km) :: Chl_C_k     ! Chl:C
+    real, dimension(km) :: OM1A_k, OM1Z_k, OM1SPM_k, OM1BC_k !POC in g/m3
+    real, dimension(km) :: CDOM_k    ! CDOM, ppb
+    real, dimension(km) :: N_k       ! Nitrogen, mmol/m3
+    real, dimension(km) :: P_k       ! Phosphorus, mmol/m3
+    real, dimension(km) :: Si_k      ! Silica, mmol/m3
+    real, dimension(km) :: S_k, T_k  ! Salinity and Temperature(Celsius)
+    real, parameter :: C_cf  = 12.0E-3    ! C conversion factor (mmol-C/m3 to g-C/m3) 
 
 !------------------------------------------------------------------
 ! Zooplankton parameters
  !Zooplankton uptake and growth
-    real(rkind), dimension(nospZ,km)   :: Z      ! Zooplankton number density (indv./m3)
-    real(rkind), dimension(nospZ)       :: optNP    ! Optimal nutrient ratio for zooplankton
-    real(rkind), dimension(nospZ)       :: Zgrow    ! Zooplankton growth (indv./m3/d)
-    real(rkind), dimension(nospA,nospZ) :: Zgrazvol ! Grazing rate in units of biovolume (um3/m3/d)
-    real(rkind), dimension(nospA,nospZ) :: ZgrazA   ! Zooplankton grazing of phytoplankton (cells/m3/d)
-    real(rkind), dimension(nospA)       :: ZgrazA_tot ! Total zooplankton grazing of phytoplankton (cells/m3/d)
-    real(rkind), dimension(nospZ)       :: ZgrazN   ! Zooplankton grazing uptake of Nitrogen (mmol-N/m3/d)
-    real(rkind), dimension(nospZ)       :: ZgrazP   ! Zooplankton grazing uptake of Phosphorus (mmol-P/m3/d)
-    real(rkind), dimension(nospZ)       :: ZgrazC   ! Zooplankton grazing uptake of Carbon (mmol-C/m3/d)
-    real(rkind), dimension(nospZ)       :: ZinN     ! Zooplankton ingestion of Nitrogen (mmol-N/m3/d)
-    real(rkind), dimension(nospZ)       :: ZinP     ! Zooplankton ingestion of Phosphorus (mmol-P/m3/d)
-    real(rkind), dimension(nospZ)       :: ZinC     ! Zooplankton ingestion of Carbon (mmol-C/m3/d)
+    real, dimension(nospZ,km)   :: Z      ! Zooplankton number density (indv./m3)
+    real, dimension(nospZ)       :: optNP    ! Optimal nutrient ratio for zooplankton
+    real, dimension(nospZ)       :: Zgrow    ! Zooplankton growth (indv./m3/d)
+    real, dimension(nospA,nospZ) :: Zgrazvol ! Grazing rate in units of biovolume (um3/m3/d)
+    real, dimension(nospA,nospZ) :: ZgrazA   ! Zooplankton grazing of phytoplankton (cells/m3/d)
+    real, dimension(nospA)       :: ZgrazA_tot ! Total zooplankton grazing of phytoplankton (cells/m3/d)
+    real, dimension(nospZ)       :: ZgrazN   ! Zooplankton grazing uptake of Nitrogen (mmol-N/m3/d)
+    real, dimension(nospZ)       :: ZgrazP   ! Zooplankton grazing uptake of Phosphorus (mmol-P/m3/d)
+    real, dimension(nospZ)       :: ZgrazC   ! Zooplankton grazing uptake of Carbon (mmol-C/m3/d)
+    real, dimension(nospZ)       :: ZinN     ! Zooplankton ingestion of Nitrogen (mmol-N/m3/d)
+    real, dimension(nospZ)       :: ZinP     ! Zooplankton ingestion of Phosphorus (mmol-P/m3/d)
+    real, dimension(nospZ)       :: ZinC     ! Zooplankton ingestion of Carbon (mmol-C/m3/d)
  !Monod equations for zooplankton ingestion of phytoplankton
-    real(rkind), dimension(nospA,nospZ) :: monodZ   ! Monod term for zooplankton grazing
-    real(rkind)                         :: Abiovol  ! Algae biovolume vector (um3/m3)
-    real(rkind), dimension(nospA,nospZ) :: top_A    ! Monod numerator value for phytoplankton group
-    real(rkind), dimension(nospA,nospZ) :: bottom_A ! Monod Denominator value for phytoplankton group
-    real(rkind), dimension(nospZ)       :: bottom   ! Sum of Monod Denominator value for all phytoplankton groups
+    real, dimension(nospA,nospZ) :: monodZ   ! Monod term for zooplankton grazing
+    real                         :: Abiovol  ! Algae biovolume vector (um3/m3)
+    real, dimension(nospA,nospZ) :: top_A    ! Monod numerator value for phytoplankton group
+    real, dimension(nospA,nospZ) :: bottom_A ! Monod Denominator value for phytoplankton group
+    real, dimension(nospZ)       :: bottom   ! Sum of Monod Denominator value for all phytoplankton groups
  !Zooplankton nutrient loss
-    real(rkind), dimension(nospZ)       :: Zresp    ! Zooplankton respiration (individuals/m3/d)
-    real(rkind)                         :: ZrespC   ! Carbon loss from zooplankton respiration (mmol-C/m3/day)
-    real(rkind), dimension(nospZ)       :: ZunC     ! Unassimilated ingested Carbon (mmol-C/m3/d)
-    real(rkind), dimension(nospZ)       :: ZunN     ! Unassimilated ingested Nitrogen (mmol-N/m3/d)
-    real(rkind), dimension(nospZ)       :: ZunP     ! Unassimilated ingested Phosphorus (mmol-P/m3/d)
-    real(rkind), dimension(nospZ)       :: ZunSi    ! Unassimilated ingested Silica (mmol-Si/m3/d)
-    real(rkind), dimension(nospZ)       :: Zmort    ! Dead zooplankton (individuals/m3/d)
-    real(rkind) :: ZmortC(nospZ), ZmortC_tot        ! Carbon released from dead zooplankton (mmol-C/m3/d)
-    real(rkind) :: ZmortN(nospZ), ZmortN_tot        ! Nitrogen released from dead zooplankton (mmol-N/m3/d)
-    real(rkind) :: ZmortP(nospZ), ZmortP_tot        ! Phosphorus released from dead zooplankton (mmol-P/m3/d)
-    real(rkind) :: ZslopC(nospZ), ZslopC_tot        ! Carbon lost to sloppy feeding (mmol-C/m3/d)
-    real(rkind) :: ZslopN(nospZ), ZslopN_tot        ! Nitrogen lost to sloppy feeding (mmol-N/m3/d)
-    real(rkind) :: ZslopP(nospZ), ZslopP_tot        ! Phosphorus lost to sloppy feeding (mmol-P/m3/d)
-    real(rkind), dimension(nospZ)       :: ZexN     ! Excretion from zooplankton (mmol-N/m3/d)
-    real(rkind), dimension(nospZ)       :: ZexP     ! Excretion from zooplankton (mmol-P/m3/d)
-    real(rkind), dimension(nospZ)       :: ZegC     ! Egestion from zooplankton (mmol-C/m3/d)
-    real(rkind), dimension(nospZ)       :: ZegN     ! Egestion from zooplankton (mmol-N/m3/d)
-    real(rkind), dimension(nospZ)       :: ZegP     ! Egestion from zooplankton (mmol-P/m3/d)
-    real(rkind), dimension(nospZ)       :: ZegSi    ! Egestion from zooplankton (mmol-Si/m3/d)
-    real(rkind) :: OM1_Ratio, OM2_Ratio             ! Separates sloppy feeding into OM1 and OM2
+    real, dimension(nospZ)       :: Zresp    ! Zooplankton respiration (individuals/m3/d)
+    real                         :: ZrespC   ! Carbon loss from zooplankton respiration (mmol-C/m3/day)
+    real, dimension(nospZ)       :: ZunC     ! Unassimilated ingested Carbon (mmol-C/m3/d)
+    real, dimension(nospZ)       :: ZunN     ! Unassimilated ingested Nitrogen (mmol-N/m3/d)
+    real, dimension(nospZ)       :: ZunP     ! Unassimilated ingested Phosphorus (mmol-P/m3/d)
+    real, dimension(nospZ)       :: ZunSi    ! Unassimilated ingested Silica (mmol-Si/m3/d)
+    real, dimension(nospZ)       :: Zmort    ! Dead zooplankton (individuals/m3/d)
+    real :: ZmortC(nospZ), ZmortC_tot        ! Carbon released from dead zooplankton (mmol-C/m3/d)
+    real :: ZmortN(nospZ), ZmortN_tot        ! Nitrogen released from dead zooplankton (mmol-N/m3/d)
+    real :: ZmortP(nospZ), ZmortP_tot        ! Phosphorus released from dead zooplankton (mmol-P/m3/d)
+    real :: ZslopC(nospZ), ZslopC_tot        ! Carbon lost to sloppy feeding (mmol-C/m3/d)
+    real :: ZslopN(nospZ), ZslopN_tot        ! Nitrogen lost to sloppy feeding (mmol-N/m3/d)
+    real :: ZslopP(nospZ), ZslopP_tot        ! Phosphorus lost to sloppy feeding (mmol-P/m3/d)
+    real, dimension(nospZ)       :: ZexN     ! Excretion from zooplankton (mmol-N/m3/d)
+    real, dimension(nospZ)       :: ZexP     ! Excretion from zooplankton (mmol-P/m3/d)
+    real, dimension(nospZ)       :: ZegC     ! Egestion from zooplankton (mmol-C/m3/d)
+    real, dimension(nospZ)       :: ZegN     ! Egestion from zooplankton (mmol-N/m3/d)
+    real, dimension(nospZ)       :: ZegP     ! Egestion from zooplankton (mmol-P/m3/d)
+    real, dimension(nospZ)       :: ZegSi    ! Egestion from zooplankton (mmol-Si/m3/d)
+    real :: OM1_Ratio, OM2_Ratio             ! Separates sloppy feeding into OM1 and OM2
 !---------------------------------------------------------------------------
 ! reaction and Nitrification subroutine variables
-    real(rkind), dimension(km)    :: NO3, NH4, PO4, DIC, O2, CDOM, Si         ! Nutrient input to subroutines
-    real(rkind), dimension(km)    :: OM1_A, OM1_Z, OM1_R, OM2_A, OM2_Z, OM2_R ! OM inputs to subroutines
-    real(rkind), dimension(km)    :: OM1_BC, OM2_BC                           ! OM inputs to subroutines
-    real(rkind), dimension(km)    :: ALK, Tr                                  ! Alkalinity and Tracer
+    real, dimension(km)    :: NO3, NH4, PO4, DIC, O2, CDOM, Si         ! Nutrient input to subroutines
+    real, dimension(km)    :: OM1_A, OM1_Z, OM1_R, OM2_A, OM2_Z, OM2_R ! OM inputs to subroutines
+    real, dimension(km)    :: OM1_BC, OM2_BC                           ! OM inputs to subroutines
+    real, dimension(km)    :: ALK, Tr                                  ! Alkalinity and Tracer
 
 
  write(6,*) "nea",nea
@@ -215,7 +215,7 @@ end subroutine cgem
 
 
 !Global Variables are here:  Core/schism_glbl.F90
-!rkind - default real(rkind) datatype
+!rkind - default real datatype
 !dt
 !ne - local number of resident elements
 !nea - local number of elements in augmented subdomain (ne+neg)

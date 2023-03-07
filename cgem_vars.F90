@@ -2,7 +2,7 @@ module cgem_vars
 
 !CGEM STATE VARIABLES
 use, intrinsic :: iso_fortran_env, only: stderr => error_unit
-use schism_glbl, only: rkind
+!use schism_glbl, only: rkind
 
 implicit none
 
@@ -117,7 +117,7 @@ integer :: nea
       integer :: nf
 
 !State Variable Array
-      real(rkind),allocatable :: ff(:,:,:) !state variable array
+      real,allocatable :: ff(:,:,:) !state variable array
 
 !----INPUT_VARS_CGEM
 !--Switches in GEM---------
@@ -484,15 +484,15 @@ end subroutine cgem_vars_allocate
 
 subroutine cgem_init 
 
-integer                          :: fu, rc
+integer                          :: istat,iunit
 
-real sinkA,sinkOM1_A,sinkOM2_A,sinkOM1_Z,sinkOM2_Z,sinkOM1_R,sinkOM2_R,sinkOM1_BC,sinkOM2_BC
-
+real sinkA(3),sinkOM1_A,sinkOM2_A,sinkOM1_Z,sinkOM2_Z,sinkOM1_R,sinkOM2_R,sinkOM1_BC,sinkOM2_BC
+character(len=1000) :: line
+!http://degenerateconic.com/namelist-error-checking.html
 namelist /switches/ Which_fluxes,Which_temperature,Which_uptake,Which_quota,Which_irradiance,Which_chlaC,Which_photosynthesis,Which_growth
 namelist /optics/ Kw,Kcdom,Kspm,Kchla,astar490,aw490,astarOMA,astarOMZ,astarOMR,astarOMBC,PARfac
 namelist /temperature/ Tref,KTg1,KTg2,Ea
-namelist /phytoplankton/ ediblevector,umax,CChla,alpha,beta,respg,respb,&
- QminN,QminP,QmaxN,QmaxP,Kn,Kp,Ksi,KQn,KQp,nfQs,vmaxN,vmaxP,vmaxSi,aN,volcell,Qc,Athresh,sinkA,mA,A_wt
+namelist /phytoplankton/ umax,CChla,alpha,beta,respg,respb,QminN,QminP,QmaxN,QmaxP,Kn,Kp,Ksi,KQn,KQp,nfQs,vmaxN,vmaxP,vmaxSi,aN,volcell,Qc,Athresh,sinkA,mA,A_wt
 namelist /zooplankton/ Zeffic,Zslop,Zvolcell,ZQc,ZQn,ZQp,ZKa,Zrespg,Zrespb,Zumax,Zm
 namelist /OM/ KG1,KG2,KG1_R,KG2_R,KG1_BC,KG2_BC,KNH4,nitmax,KO2,KstarO2,KNO3,pCO2,&
  stoich_x1R,stoich_y1R,stoich_x2R,stoich_y2R,stoich_x1BC,stoich_y1BC,stoich_x2BC,stoich_y2BC,&
@@ -504,33 +504,68 @@ namelist /OM/ KG1,KG2,KG1_R,KG2_R,KG1_BC,KG2_BC,KNH4,nitmax,KO2,KstarO2,KNO3,pCO
 !conda create --prefix ./env_f90 -c conda-forge f90nml
 !(conda activate it)
 !conda install -c conda-forge ascii_graph
-open(action='read',file='cgem.nml',iostat=rc,newunit=fu)
+
+open(action='read',file='cgem.nml',iostat=istat,newunit=iunit)
 
 !namelist /switches/
-read(nml=switches,iostat=rc,unit=fu)
-if (rc /= 0) write (stderr, '("Error: invalid Namelist format, switches")')
+read(nml=switches,iostat=istat,unit=iunit)
+if (istat /= 0) then
+ backspace(iunit)
+ read(iunit,fmt='(A)') line
+ write(6,'(A)') &
+        'Invalid line in namelist: '//trim(line)
+endif
 
 !namelist /optics/
-read(nml=optics,iostat=rc,unit=fu)
-if (rc /= 0) write (stderr, '("Error: invalid Namelist format, optics")')
+read(nml=optics,iostat=istat,unit=iunit)
+if (istat /= 0) then
+ backspace(iunit)
+ read(iunit,fmt='(A)') line
+ write(6,'(A)') &
+        'Invalid line in namelist: '//trim(line)
+endif
 
 !namelist /temperature/
-read(nml=temperature,iostat=rc,unit=fu)
-if (rc /= 0) write (stderr, '("Error: invalid Namelist format, temperature")')
-close(fu)
+read(nml=temperature,iostat=istat,unit=iunit)
+if (istat /= 0) write (stderr, '("Error: invalid Namelist format, temperature")')
+if (istat /= 0) then
+ backspace(iunit)
+ read(iunit,fmt='(A)') line
+ write(6,'(A)') &
+        'Invalid line in namelist: '//trim(line)
+endif
 
 !namelist /phytoplankton/
-read(nml=phytoplankton,iostat=rc,unit=fu)
-if (rc /= 0) write (stderr, '("Error: invalid Namelist format, phytoplankton")')
+read(nml=phytoplankton,iostat=istat,unit=iunit)
+if (istat /= 0) write (stderr, '("Error: invalid Namelist format, phytoplankton")')
+if (istat /= 0) then
+ backspace(iunit)
+ read(iunit,fmt='(A)') line
+ write(6,'(A)') &
+        'Invalid line in namelist: '//trim(line)
+endif
 
 !namelist /zooplankton/
-read(nml=zooplankton,iostat=rc,unit=fu)
-if (rc /= 0) write (stderr, '("Error: invalid Namelist format, zooplankton")')
+read(nml=zooplankton,iostat=istat,unit=iunit)
+if (istat /= 0) write (stderr, '("Error: invalid Namelist format, zooplankton")')
+if (istat /= 0) then
+ backspace(iunit)
+ read(iunit,fmt='(A)') line
+ write(6,'(A)') &
+        'Invalid line in namelist: '//trim(line)
+endif
 
 !namelist /OM/
-read(nml=OM,iostat=rc,unit=fu)
-if (rc /= 0) write (stderr, '("Error: invalid Namelist format, OM")')
+read(nml=OM,iostat=istat,unit=iunit)
+if (istat /= 0) write (stderr, '("Error: invalid Namelist format, OM")')
+if (istat /= 0) then
+ backspace(iunit)
+ read(iunit,fmt='(A)') line
+ write(6,'(A)') &
+        'Invalid line in namelist: '//trim(line)
+endif
 
+close(iunit)
 
 end subroutine cgem_init
 

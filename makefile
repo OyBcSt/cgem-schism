@@ -22,7 +22,7 @@
 
 EXE = CGEM.exe
 
-OBJ  =  schism_glbl.o\
+OBJ  =  \
 	cgem_vars.o\
         sgrid.o\
         cgem.o\
