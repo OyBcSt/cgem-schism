@@ -3,9 +3,9 @@
 # Note modules must be compiled in bottom-up dependency order.
 
 OBJ  =  \
-	Command_Line_Args.o\
         model_dim.o\
         cgem_vars.o\
+	Command_Line_Args.o\
         date_time.o\
         sgrid.o\
         Calc_Chla.o\
