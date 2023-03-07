@@ -598,11 +598,14 @@ real Si_init,OM1_BC_init,OM2_BC_init,ALK_init,Tr_init,S_init,T_init,depth_in,Rad
 real lat_in,lon_in
 character(len=1000) :: line
 !http://degenerateconic.com/namelist-error-checking.html
-namelist /simulation/ iYrS,iMonS,iDayS,iHrS,iMinS,iSecS,iYrE,iMonE,iDayE,iHrE,iMinE,iSecE,dT,lon_in,lat_in,depth_in,Rad_in 
-namelist /switches/ Which_fluxes,Which_temperature,Which_uptake,Which_quota,Which_irradiance,Which_chlaC,Which_photosynthesis,Which_growth
+namelist /simulation/ iYrS,iMonS,iDayS,iHrS,iMinS,iSecS,iYrE,iMonE,iDayE,iHrE,iMinE,iSecE,&
+ dT,lon_in,lat_in,depth_in,Rad_in 
+namelist /switches/ Which_fluxes,Which_temperature,Which_uptake,Which_quota,Which_irradiance,&
+  Which_chlaC,Which_photosynthesis,Which_growth
 namelist /optics/ Kw,Kcdom,Kspm,Kchla,astar490,aw490,astarOMA,astarOMZ,astarOMR,astarOMBC,PARfac
 namelist /temperature/ Tref,KTg1,KTg2,Ea
-namelist /phytoplankton/ umax,CChla,alpha,beta,respg,respb,QminN,QminP,QmaxN,QmaxP,Kn,Kp,Ksi,KQn,KQp,nfQs,vmaxN,vmaxP,vmaxSi,aN,volcell,Qc,Athresh,sinkA,mA,A_wt
+namelist /phytoplankton/ umax,CChla,alpha,beta,respg,respb,QminN,QminP,QmaxN,QmaxP,Kn,Kp,Ksi,KQn,&
+ KQp,nfQs,vmaxN,vmaxP,vmaxSi,aN,volcell,Qc,Athresh,sinkA,mA,A_wt
 namelist /zooplankton/ Zeffic,Zslop,Zvolcell,ZQc,ZQn,ZQp,ZKa,Zrespg,Zrespb,Zumax,Zm
 namelist /OM/ KG1,KG2,KG1_R,KG2_R,KG1_BC,KG2_BC,KNH4,nitmax,KO2,KstarO2,KNO3,pCO2,&
  stoich_x1R,stoich_y1R,stoich_x2R,stoich_y2R,stoich_x1BC,stoich_y1BC,stoich_x2BC,stoich_y2BC,&

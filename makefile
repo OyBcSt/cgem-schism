@@ -21,10 +21,12 @@
 ### =============== End User Modifiable Section  =============== ####
 include cgem_src/src_files
 include moc_src/src_files
-include sdm_src/src_files
+#include sdm_src/src_files
 cgemdir=cgem_src
 mocdir=moc_src
-sdmdir=sdm_src
+#sdmdir=sdm_src
+
+F90 = gfortran
 
 EXE = CGEM.exe
 

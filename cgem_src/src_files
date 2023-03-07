@@ -27,3 +27,4 @@ OBJ  =  \
 	Light_GoMDOM.o\
 	Call_IOP_PAR.o\
         main.o
+
