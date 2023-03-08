@@ -7,6 +7,14 @@ OBJ  =  \
         grid_vars.o\
         cgem_vars.o\
 	Command_Line_Args.o\
+	MPI_dummy.o\
+	serial.o\
+	s_netcdf.o\
+	OUTPUT.o\
+	NETCDF_UTILITIES.o\
+	OUTPUT_NETCDF_CGEM.o\
+	Model_Output_CGEM.o\
+	Model_Finalize_CGEM.o\
         model_init.o\
 	Check_InputFile.o\
 	update_grid.o\
@@ -26,6 +34,7 @@ OBJ  =  \
 	reaction.o\
 	Q10_T.o\
 	MOD_UTILITIES.o\
+	Init_Output_CGEM.o\
 	calc_solar_zenith.o\
 	Light_GoMDOM.o\
 	Call_IOP_PAR.o\

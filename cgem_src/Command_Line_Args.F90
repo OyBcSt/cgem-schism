@@ -64,13 +64,13 @@
         write(6,*) "A,Qn,Qp,Z,NO3,NH4,PO4,DIC,O2"
         write(6,*) "OM1_A,OM2_A,OM1_Z,OM2_Z,OM1_R,OM2_R"
         write(6,*) "CDOM,Si,Alk,Tr"
-        write(6,*) "or you can choose nothing and it will be A."
+        write(6,*) "or you can choose nothing."
         write(6,*) "You chose ", print_var
         STOP
       end select
 
       else
-        ivar=1
+        ivar=0
       endif
 
 !-A; Phytoplankton number density (cells/m3);

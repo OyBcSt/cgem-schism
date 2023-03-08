@@ -38,5 +38,8 @@ enddo
 write(6,*) "In main, after cgem, TC_8,istep:",TC_8,istep
 #endif
 
+#ifdef NCFILE
+call Model_Finalize_CGEM
+#endif
 
 end program main

@@ -1235,6 +1235,8 @@ write(6,*) "In cgem, updated ALK"
         enddo   ! end of  "do k = 1, nz" 
 
 
+if(ivar.ne.0) write(6,*) ff(1,ivar)
+
 ! ----------------------------------------------------------------------
 
 
