@@ -528,8 +528,11 @@ write(6,*) "In cgem, initialized state vars"
 !--------------------------------------
 ! Call temperature and growth functions
 !-----------------------------------------
-      call func_T(T_k(k), Tadj)
-      call func_Qs(Qn_k(:,k), Qp_k(:,k), f_Qn, f_Qp)
+      call func_T( T_k(k),Tadj,nospA,nospZ,Tref,KTg1,KTg2,Which_temperature,Ea )
+!         Nutrient dependent growth function
+      call func_Qs( Qn_k(:,k), Qp_k(:,k), f_Qn, f_Qp, nospA,&
+         nfQs,QmaxN,QminN,QmaxP,QminP,Which_uptake )
+
 
 !Nutrients only taken up during the day:
      Is_Day = 1

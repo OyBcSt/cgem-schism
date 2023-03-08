@@ -1,8 +1,8 @@
 !-------------------------------------------------------------
-  SUBROUTINE func_E( E, min_S, f_E )   
+  SUBROUTINE func_E( E, min_S, f_E,Which_photosynthesis,alphad,betad,nospA )   
 !-------------------------------------------------------------
 
-  USE cgem_vars, ONLY:Which_photosynthesis,alphad,betad,nospA
+!  USE cgem_vars, ONLY:Which_photosynthesis,alphad,betad,nospA
     
   !--------------------------------------------------------------------------
   ! INPUT:  
@@ -19,6 +19,8 @@
   !------------------------------------------------------------------------
     IMPLICIT NONE
 
+    INTEGER, INTENT(IN) :: nospA,Which_photosynthesis
+    REAL, INTENT(IN) :: alphad(nospA),betad(nospA)
     REAL, INTENT(IN) :: E    ! Irradiance (quanta/cm**2/sec)
     REAL, INTENT(IN),  DIMENSION(nospA) :: min_S ! Function of rate limiting nutrient
     REAL, INTENT(OUT),DIMENSION(nospA)  :: f_E   ! Growth rate factor (dimensionless) 
@@ -26,13 +28,13 @@
 
 
     if (Which_photosynthesis.eq.1) then         !With photoinhibition 
-        f_E(:) = ( 1.0 - exp(-alphad(:) * E) ) * exp(-betad(:)*E)
+        f_E(1:nospA) = ( 1.0 - exp(-alphad(1:nospA) * E) ) * exp(-betad(1:nospA)*E)
     else if (Which_photosynthesis.eq.2) then    !Without photoinhibition
-        f_E(:) = ( 1.0 - exp(-alphad(:) * E) )
+        f_E(1:nospA) = ( 1.0 - exp(-alphad(1:nospA) * E) )
     else if (Which_photosynthesis.eq.3) then    !Nutrient dependent
-        f_E(:) = ( 1.0 - exp(-alphad(:) * E / min_S) )
+        f_E(1:nospA) = ( 1.0 - exp(-alphad(1:nospA) * E / min_S) )
     else if (Which_photosynthesis.eq.4) then !GoMDOM
-        f_E(:) = tanh(alpha * E)
+        f_E(1:nospA) = tanh(alpha * E)
     else
         write(6,*) "Error in func_E"
         stop

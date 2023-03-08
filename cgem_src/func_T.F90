@@ -1,9 +1,7 @@
 !---------------------------------------------------------------------------
-  SUBROUTINE func_T( T, Tadj )   
+  SUBROUTINE func_T( T, Tadj,nospA,nospZ,Tref,KTg1,KTg2,Which_temperature,Ea )   
 !---------------------------------------------------------------------------
 
-  USE cgem_vars, only: nospA,nospZ,Tref,KTg1,KTg2,Which_temperature,Ea
-      
   !--------------------------------------------------------------------------
   ! INPUT:  
   !   T = temperature [degree C]
@@ -14,7 +12,8 @@
   ! REFERENCES:
   !------------------------------------------------------------------------
     IMPLICIT NONE
-
+    INTEGER, INTENT(IN) :: nospA,nospZ,Which_temperature
+    REAL, INTENT(IN), DIMENSION(nospA+nospZ) :: Tref,KTg1,KTg2,Ea
     REAL, INTENT(IN) :: T    ! Temperature (deg C)
     REAL, INTENT(OUT), DIMENSION(nospA+nospZ) :: Tadj 
     REAL, PARAMETER  :: f0    = 0.1

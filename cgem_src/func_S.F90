@@ -1,9 +1,11 @@
 !------------------------------------------------------------
-  SUBROUTINE func_S( Qn, Qp, N, P, Si, f_N, f_P, f_Si )   
+  SUBROUTINE func_S( Qn, Qp, N, P, Si, f_N, f_P, f_Si,&
+      nospA,Which_quota,QminN,QminP,QmaxN,QmaxP,&
+      is_diatom,KQn,KQp,KSi )   
 !-- func_S is for a function of substrate 'S' --------------- 
 
-  USE cgem_vars, only: nospA,Which_quota,QminN,QminP,QmaxN,QmaxP,&
-      is_diatom,KQn,KQp,KSi
+!  USE cgem_vars, only: nospA,Which_quota,QminN,QminP,QmaxN,QmaxP,&
+!      is_diatom,KQn,KQp,KSi
       
   !--------------------------------------------------------------------------
   ! INPUT:  
@@ -24,6 +26,10 @@
   !------------------------------------------------------------------------
     IMPLICIT NONE
 
+
+    INTEGER, INTENT(IN) :: nospA,Which_quota,is_diatom(nospA)
+    REAL, INTENT(IN), DIMENSION(nospA)  :: QminN, QminP,QmaxN,QmaxP
+    REAL, INTENT(IN), DIMENSION(nospA)  :: KQn,KQp,KSi 
     REAL, INTENT(IN), DIMENSION(nospA)  :: Qn    ! Phytoplankton Nitrogen Quota (mmol-N/cell)
     REAL, INTENT(IN), DIMENSION(nospA)  :: Qp    ! Phytoplankton Phosporus Quota (mmol-P/cell) 
     REAL, INTENT(IN)                    :: Si    ! Silica concentration in seawater (mmol-Si/m3)

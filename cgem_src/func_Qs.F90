@@ -1,8 +1,9 @@
 !------------------------------------------------------------
-  SUBROUTINE func_Qs( Qn, Qp, f_Qn, f_Qp )   
+  SUBROUTINE func_Qs( Qn, Qp, f_Qn, f_Qp,&
+       nospA,nfQs,QmaxN,QminN,QmaxP,QminP,Which_uptake )   
 !-- func_Qs is for a function of substrate 'S' --------------
 
-  USE cgem_vars, only: nospA,nfQs,QmaxN,QminN,QmaxP,QminP,Which_uptake
+!  USE cgem_vars, only: nospA,nfQs,QmaxN,QminN,QmaxP,QminP,Which_uptake
       
   !--------------------------------------------------------------------------
   ! INPUT:  
@@ -18,6 +19,8 @@
   !------------------------------------------------------------------------
     IMPLICIT NONE
 
+    INTEGER, INTENT(IN) :: nospA,Which_uptake
+    REAL, INTENT(IN), DIMENSION(nospA) :: nfQs,QmaxN,QminN,QmaxP,QminP
     REAL, INTENT(IN), DIMENSION(nospA)  :: Qn    ! Phytoplankton Nitrogen Quota (mmol-N/cell)
     REAL, INTENT(IN), DIMENSION(nospA)  :: Qp    ! Phytoplankton Phosporus Quota (mmol-P/cell) 
     REAL, INTENT(OUT), DIMENSION(nospA) :: f_Qn  ! Function based on N

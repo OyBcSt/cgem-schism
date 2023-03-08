@@ -3,7 +3,9 @@
      & uA_k, Aresp_k, uN_k, uP_k, uE_k, uSi_k, nz )       
 ! ------------------------------------------------------------------------
 
-      USE cgem_vars, only:km,nospA,nospZ,umax,respg,respb,Which_growth
+      USE cgem_vars, only:km,nospA,nospZ,umax,respg,respb,Which_growth,&
+           Which_photosynthesis,alphad,betad,Which_quota,QminN, QminP, &
+           QmaxN,QmaxP,is_diatom,KQn,KQp,KSi,Tref,KTg1,KTg2,Which_temperature,Ea
 
       IMPLICIT NONE
 
@@ -62,12 +64,15 @@ write(6,*) "In calc_Agrow: Begin calc_Agrow"
 
        do k = 1, nz
 
-          call func_T( T_k(k), Tadj ) ! Temperature adjustment
-          call func_S( Qn(:,k), Qp(:,k), N(k), P(k), Si(k), f_N, f_P, f_Si ) ! Nutrient dependent growth function
+          !call func_T( T_k(k), Tadj ) ! Temperature adjustment
+          call func_T( T_k(k), Tadj,nospA,nospZ,Tref,KTg1,KTg2,Which_temperature,Ea )
+!         call func_S( Qn(:,k), Qp(:,k), N(k), P(k), Si(k), f_N, f_P, f_Si ) ! Nutrient dependent growth function
+          call func_S( Qn(:,k), Qp(:,k), N(k), P(k), Si(k), f_N, f_P, f_Si, nospA,&
+                Which_quota, QminN, QminP, QmaxN, QmaxP, is_diatom, KQn, KQp, KSi )
           do isp = 1, nospA
              min_S(isp) = AMIN1( f_N(isp), f_P(isp), f_Si(isp) )
           enddo
-          call func_E( E(k), min_S, f_E ) ! Light growth function
+          call func_E( E(k), min_S, f_E,Which_photosynthesis,alphad,betad,nospA ) ! Light growth function
 
       !Output variables for netCDF to examine light vs. nutrient limitations 
           uN_k(k,:)   = f_N(:)  * umax(:) * Tadj(1:nospA) 
