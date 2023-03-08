@@ -2,7 +2,7 @@ module cgem_vars
 
 !CGEM STATE VARIABLES
 use, intrinsic :: iso_fortran_env, only: stderr => error_unit
-use model_dim
+use grid_vars
 !use schism_glbl, only: rkind
 
 implicit none
@@ -13,38 +13,21 @@ SAVE
 integer :: nospA
 integer :: nospZ
 
-!--Run Specifics---------------
-integer iYrS,iMonS,iDayS,iHrS,iMinS,iSecS
-integer iYrE,iMonE,iDayE,iHrE,iMinE,iSecE
-integer dT
+!misc
+real :: eps
 
-!Constants
-real, parameter :: SDay = 86400.0  ! # of sec in 24 hr day
-integer :: StepsPerDay                   ! Time steps per day
-real :: dTd                           ! Timestep in days 
+!Sinking
+real, dimension(:), allocatable :: ws
 
 !Rad
 real, allocatable :: aDailyRad(:)  ! Previous day's irradiance per layer
 real, allocatable :: aRadSum(:) 
-!This should all be from SCHISM
-!Solar radiation
-real :: Rad
-!Lat/lon of elements
-real :: lat,lon
-!Depth stuff
-real, allocatable :: d(:) ! depth cell bottom to surface
-real, allocatable :: d_sfc(:) ! depth cell center to surface 
-real, allocatable :: dz(:)   !Thickness of cell
-!'tracers'
-real, allocatable :: S(:),T(:)
-!Beginning of year for date stammp
-integer :: iYr0
 
 !Stoichiometry
-real, dimension(:,:), allocatable :: s_x1A,s_x2A,s_y1A,s_y2A
-real, dimension(:,:), allocatable :: s_z1A,s_z2A
-real, dimension(:,:), allocatable :: s_x1Z,s_x2Z,s_y1Z,s_y2Z
-real, dimension(:,:), allocatable :: s_z1Z,s_z2Z
+real, dimension(:), allocatable :: s_x1A,s_x2A,s_y1A,s_y2A
+real, dimension(:), allocatable :: s_z1A,s_z2A
+real, dimension(:), allocatable :: s_x1Z,s_x2Z,s_y1Z,s_y2Z
+real, dimension(:), allocatable :: s_z1Z,s_z2Z
 real Stoich_x1A_init,Stoich_y1A_init,Stoich_z1A_init
 real Stoich_x2A_init,Stoich_y2A_init,Stoich_z2A_init
 real Stoich_x1Z_init,Stoich_y1Z_init,Stoich_z1Z_init
@@ -68,11 +51,9 @@ INTEGER, PARAMETER :: i_Si      = 9 !Silica (SA, SRP) Fluxes
 ! =========================================================
 ! Terms for Flux Calculations
 ! =========================================================
-       REAL,ALLOCATABLE,SAVE :: Esed(:)
-       REAL,ALLOCATABLE,SAVE :: CBODW(:)
-       REAL,ALLOCATABLE,SAVE :: pH(:)
-
-
+       REAL :: Esed
+       REAL :: CBODW
+       REAL,ALLOCATABLE :: pH(:)
 
 !External subroutines
 external           :: DailyRad_init 
@@ -283,10 +264,6 @@ integer Which_Outer_BC
 real wt_l, wt_o
 real wt_pl, wt_po
 real m_OM_init,m_OM_BC,m_OM_sh
-!real Stoich_x1A_init,Stoich_y1A_init,Stoich_z1A_init
-!real Stoich_x2A_init,Stoich_y2A_init,Stoich_z2A_init
-!real Stoich_x1Z_init,Stoich_y1Z_init,Stoich_z1Z_init
-!real Stoich_x2Z_init,Stoich_y2Z_init,Stoich_z2Z_init
 real KG_bot
 
 !Light curve parameters
@@ -297,13 +274,11 @@ real, allocatable :: betad(:)  ! Photoinhibition constant / Vmax
 integer, allocatable :: is_diatom(:)
 
 
-
 contains
 
 subroutine cgem_vars_allocate()
 
-integer i
-integer ierr
+integer i,ierr
 integer :: counter = 0
 
 
@@ -544,45 +519,32 @@ if(ierr.ne.0) write(6,*) "error in allocating:KTg2"
 allocate(Ea(nospA+nospZ),stat=ierr)                     !Ea(nospA+nospZ): Slope of Arrhenius plot(eV)
 if(ierr.ne.0) write(6,*) "error in allocating:Ea"
 
+!Sinking
+allocate(ws(nf),stat=ierr)
+if(ierr.ne.0) write(6,*) "error in allocating:ws"
+
 !Rad
 allocate(aDailyRad(km),aRadSum(km),stat=ierr) ! Previous day's irradiance per layer
 if(ierr.ne.0) write(6,*) "error in allocating:aDailyRad,aRadSum"
 aDailyRad = 1.
 aRadSum = 0.
 
-!Depth stuff
-allocate(d(km),stat=ierr) ! depth cell bottom to surface  
-if(ierr.ne.0) write(6,*) "error in allocating:d"
-allocate(d_sfc(km),stat=ierr) ! depth cell center to surface  
-if(ierr.ne.0) write(6,*) "error in allocating:d_sfc"
-allocate(dz(km),stat=ierr) !Thickness of cell
-if(ierr.ne.0) write(6,*) "error in allocating:dz"
-
-
-
-!'tracers'
-allocate(S(km),stat=ierr) ! Salinity (psu) 
-if(ierr.ne.0) write(6,*) "error in allocating:S"
-allocate(T(km),stat=ierr) ! Temperature (C) 
-if(ierr.ne.0) write(6,*) "error in allocating:T"
-
 !Stoichiometry
-allocate(s_x1A(nea,km),s_x2A(nea,km),s_y1A(nea,km),s_y2A(nea,km),s_z1A(nea,km),s_z2A(nea,km),&
-         s_x1Z(nea,km),s_x2Z(nea,km),s_y1Z(nea,km),s_y2Z(nea,km),s_z1Z(nea,km),s_z2Z(nea,km),stat=ierr)
+allocate(s_x1A(km),s_x2A(km),s_y1A(km),s_y2A(km),s_z1A(km),s_z2A(km),&
+         s_x1Z(km),s_x2Z(km),s_y1Z(km),s_y2Z(km),s_z1Z(km),s_z2Z(km),stat=ierr)
 if(ierr.ne.0) write(6,*) "error in allocating:stoichiometry"
 
 !Flux
-  allocate(Esed(nea),stat=ierr)
-  if(ierr.ne.0) write(6,*) "error in allocating:Esed"
-  allocate(CBODW(nea),stat=ierr)
-  if(ierr.ne.0) write(6,*) "error in allocating:CBODW"
   allocate(pH(km),stat=ierr)
   if(ierr.ne.0) write(6,*) "error in allocating:pH"
+
+Esed = -9999.
+CBODW = -9999.
+pH = -9999. 
 
 #ifdef DEBUG
 write(6,*) "End cgem_vars_allocate"
 #endif
-
 
 return
 end subroutine cgem_vars_allocate
@@ -590,16 +552,14 @@ end subroutine cgem_vars_allocate
 subroutine cgem_init 
 
 integer                          :: istat,iunit
-integer :: k
+integer :: isp,k
+real tot,x
 real sinkA(3),sinkOM1_A,sinkOM2_A,sinkOM1_Z,sinkOM2_Z,sinkOM1_R,sinkOM2_R,sinkOM1_BC,sinkOM2_BC
 real A_init,Qn_init,Qp_init,Z1_init,Z2_init,NO3_init,NH4_init,PO4_init,DIC_init,O2_init
 real OM1_A_init,OM2_A_init,OM1_Z_init,OM2_Z_init,OM1_R_init,OM2_R_init,CDOM_init
-real Si_init,OM1_BC_init,OM2_BC_init,ALK_init,Tr_init,S_init,T_init,depth_in,Rad_in
-real lat_in,lon_in
+real Si_init,OM1_BC_init,OM2_BC_init,ALK_init,Tr_init
 character(len=1000) :: line
 !http://degenerateconic.com/namelist-error-checking.html
-namelist /simulation/ iYrS,iMonS,iDayS,iHrS,iMinS,iSecS,iYrE,iMonE,iDayE,iHrE,iMinE,iSecE,&
- dT,lon_in,lat_in,depth_in,Rad_in 
 namelist /switches/ Which_fluxes,Which_temperature,Which_uptake,Which_quota,Which_irradiance,&
   Which_chlaC,Which_photosynthesis,Which_growth
 namelist /optics/ Kw,Kcdom,Kspm,Kchla,astar490,aw490,astarOMA,astarOMZ,astarOMR,astarOMBC,PARfac
@@ -612,7 +572,7 @@ namelist /OM/ KG1,KG2,KG1_R,KG2_R,KG1_BC,KG2_BC,KNH4,nitmax,KO2,KstarO2,KNO3,pCO
  sinkOM1_A,sinkOM2_A,sinkOM1_Z,sinkOM2_Z,sinkOM1_R,sinkOM2_R,sinkOM1_BC,sinkOM2_BC,KGcdom,CF_SPM,KG_bot
 namelist /init/ A_init,Qn_init,Qp_init,Z1_init,Z2_init,NO3_init,NH4_init,PO4_init,DIC_init,O2_init,&
  OM1_A_init,OM2_A_init,OM1_Z_init,OM2_Z_init,OM1_R_init,OM2_R_init,CDOM_init,&
- Si_init,OM1_BC_init,OM2_BC_init,ALK_init,Tr_init,S_init,T_init
+ Si_init,OM1_BC_init,OM2_BC_init,ALK_init,Tr_init
 
 !Later, look at this python namelist thing:
 !https://github.com/marshallward/f90nml
@@ -628,16 +588,6 @@ write(6,*) "Begin cgem_init"
 
 open(action='read',file='cgem.nml',iostat=istat,newunit=iunit)
 
-!namelist /simulation/
-read(nml=simulation,iostat=istat,unit=iunit)
-if (istat /= 0) then
- backspace(iunit)
- read(iunit,fmt='(A)') line
- write(6,'(A)') &
-        'Invalid line in namelist simulation: '//trim(line)
-endif
-
-
 !namelist /switches/
 read(nml=switches,iostat=istat,unit=iunit)
 if (istat /= 0) then
@@ -645,6 +595,7 @@ if (istat /= 0) then
  read(iunit,fmt='(A)') line
  write(6,'(A)') &
         'Invalid line in namelist: '//trim(line)
+ stop
 endif
 
 !namelist /optics/
@@ -654,6 +605,7 @@ if (istat /= 0) then
  read(iunit,fmt='(A)') line
  write(6,'(A)') &
         'Invalid line in namelist: '//trim(line)
+ stop
 endif
 
 !namelist /temperature/
@@ -664,6 +616,7 @@ if (istat /= 0) then
  read(iunit,fmt='(A)') line
  write(6,'(A)') &
         'Invalid line in namelist: '//trim(line)
+ stop
 endif
 
 !namelist /phytoplankton/
@@ -674,9 +627,39 @@ if (istat /= 0) then
  read(iunit,fmt='(A)') line
  write(6,'(A)') &
         'Invalid line in namelist: '//trim(line)
+ stop
 endif
 
 ediblevector=0.5
+Athresh = Athresh*volcell   ! Threshold for grazing, um^3/m3
+eps=0
+do isp=1,nospA
+   eps=0
+   if(umax(isp).eq.0) eps=1.e-18
+   alphad(isp) = alpha(isp)/(umax(isp)+eps) ! Initial slope of photosynthesis-irradiance curve / Vmax
+   betad(isp)  = beta(isp)/(umax(isp)+eps)  ! Photoinhibition constant / Vmax
+enddo
+
+!Convert relative proportions of phytoplankton to percentage of total chlA
+tot = SUM(A_wt)
+if(tot.le.0) then
+ write(6,*) "Error in A_wt, A_wt.le.0"
+ stop
+endif
+
+do isp=1,nospA
+   A_wt(isp) = A_wt(isp)/tot
+enddo
+
+!Diatom/non-Diatom array
+do isp=1,nospA
+   if(KSi(isp).le.tiny(x)) then
+      is_diatom(isp) = 0
+   else
+      is_diatom(isp) = 1
+   endif
+enddo
+
 
 !namelist /zooplankton/
 read(nml=zooplankton,iostat=istat,unit=iunit)
@@ -686,6 +669,7 @@ if (istat /= 0) then
  read(iunit,fmt='(A)') line
  write(6,'(A)') &
         'Invalid line in namelist: '//trim(line)
+ stop
 endif
 
 !namelist /OM/
@@ -696,43 +680,22 @@ if (istat /= 0) then
  read(iunit,fmt='(A)') line
  write(6,'(A)') &
         'Invalid line in namelist: '//trim(line)
+ stop
 endif
 
 !namelist /init/
 read(nml=init,iostat=istat,unit=iunit)
-if (istat /= 0) write (stderr, '("Error: invalid Namelist format, OM")')
+if (istat /= 0) write (stderr, '("Error: invalid Namelist format, init")')
 if (istat /= 0) then
  backspace(iunit)
  read(iunit,fmt='(A)') line
  write(6,'(A)') &
         'Invalid line in namelist: '//trim(line)
+ stop
 endif
 
 
 close(iunit)
-
-
-!Set lat/lon
-lat = lat_in
-lon = lon_in
-!Radiation
-Rad = Rad_in
-!Define depths
-d = depth_in          !Depth of the water column
-dz = depth_in/km      !Thickness of a cell (they are the same for now)
-
-!Distance from surface to bottom of cell
-d(1) = dz(1)
-!Distance from surface to center of cell
-d_sfc(1) = dz(1)/2.   !First cell is half of total thickness of first cell
-do k=2,km   !Okay, this is stupid and only works for this case...fix later
- d(k) = d(k-1) + dz(k)
- d_sfc(k) = d_sfc(k-1) + dz(k)
-enddo
-
-!Initialize Time stuff
-dTd = dT/SDay         ! Timestep length in units of days
-StepsPerDay = SDay / dT ! Time steps in a day
 
 !namelist /init/ A_init,Qn_init,Qp_init,Z1_init,Z2_init,NO3_init,NH4_init,PO4_init,DIC_init,O2_init,&
 ! OM1_A_init,OM2_A_init,OM1_Z_init,OM2_Z_init,OM1_R_init,OM2_R_init,CDOM_init,Si_init,OM1_BC_init,OM2_BC_init,ALK_init,Tr_init
@@ -759,8 +722,6 @@ ff(:,iOM1_BC) = OM1_BC_init !0. !157.09488                   !OM1_bc
 ff(:,iOM2_BC) = OM2_BC_init !0. !333.65701                   !OM2_bc
 ff(:,iALK) = ALK_init !2134               !ALK 
 ff(:,iTr) = Tr_init !1                  !Tr
-S = S_init
-T = T_init
 
 s_x1A=1.
 s_x2A=1.
@@ -784,7 +745,6 @@ stoich_z2BC = 1.
 
 
 #ifdef DEBUG
-write(6,*) "S,T",S(1),T(1)
 write(6,*) "ff(1)",ff(1,:)
 write(6,*) "End cgem_init"
 #endif
@@ -837,4 +797,3 @@ subroutine rad_init(TC_8)
 end subroutine rad_init
 
 end module cgem_vars
-

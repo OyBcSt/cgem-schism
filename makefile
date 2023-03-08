@@ -10,13 +10,17 @@
 ### Uncomment the next line to enable debugging
 #DFLAGS = -DDEBUG
 #DFLAGS = -g -warn -debug all -g -check all -ftrapuv -DDEBUG #-mcmodel=medium -shared-intel 
-DFLAGS = -Wall -Wextra -pedantic -fimplicit-none -fbacktrace -D_CGEM -DRDEBUG -DDEBUG 
+#DFLAGS = -Wall -Wextra -pedantic -fimplicit-none -fbacktrace #-D_CGEM -DRDEBUG -DDEBUG 
 #DFLAGS = -g
 
 ### Build options for specific platforms. 
 ### LIBS has path to netCDF
 #INC   = -I. -I/usr/local/apps/pnetcdf-1.9.0/intel-18.0/include -I/usr/local/apps/netcdf-4.6.3/intel-18.0/include/
 #LIBS  = -L. -L/usr/local/apps/pnetcdf-1.9.0/intel-18.0/lib -lpnetcdf -L/usr/local/apps/netcdf-4.6.3/intel-18.0/lib -lnetcdff -lnetcdf
+#LIBS = -L/rsstu/users/l/lllowe/cgem/env_ncdf/lib -lnetcdff -lnetcdf
+#INC = -I/rsstu/users/l/lllowe/cgem/env_ncdf/include
+LIBS = -L/usr/local/usrapps/ncdfutil/cmaq-libs/intel2018.4-ncdf4/netcdf/lib -lnetcdff -lnetcdf
+INC = -I/usr/local/usrapps/ncdfutil/cmaq-libs/intel2018.4-ncdf4/netcdf/include
 
 ### =============== End User Modifiable Section  =============== ####
 include cgem_src/src_files
@@ -26,7 +30,8 @@ cgemdir=cgem_src
 mocdir=moc_src
 #sdmdir=sdm_src
 
-F90 = gfortran
+#!F90 = gfortran
+F90 = ifort
 
 EXE = CGEM.exe
 
@@ -37,7 +42,7 @@ cgem: ${MOC_OBJ} ${OBJ} ${SDM_OBJ}
 ## Pattern rules
 #
 $(OBJ):%.o: $(cgemdir)/%.F90
-	$(F90) -c $(FFLAGS) $(DFLAGS) $<
+	$(F90) -c $(FFLAGS) $(DFLAGS) $(INC) $<
 
 $(SDM_OBJ): %.o: $(sdmdir)/%.f
 	$(F90) -c $(FFLAGS_SDM) $<

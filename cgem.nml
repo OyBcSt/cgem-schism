@@ -6,29 +6,6 @@
 !    Values can be separated by commas or spaces.
 !(5) space allowed before/after '='
 
-
-&simulation
-!Simulation Specifics
-!namelist /simulation/ iYrS,iMonS,iDayS,iHrS,iMinS,iSecS,iYrE,iMonE,iDayE,iHrE,iMinE,iSecE,dT,lon_in,lat_in,depth_in
-iYrS = 2006       !- starting time iYrS
-iMonS = 1         !- starting time iMonS
-iDayS = 1         !- starting time iDayS
-iHrS = 18         !- starting time iHrS
-iMinS = 0         !- starting time iMinS
-iSecS = 0         !- starting time iSecS
-iYrE = 2006       !- ending time iYrE
-iMonE = 12        !- ending time iMonE
-iDayE = 31        !- ending time iDayE
-iHrE = 18         !- ending time iHrE
-iMinE = 0         !- ending time iMinE
-iSecE = 0         !- ending time iSecE
-dT = 3600         !- dT (timestep, seconds)
-lon_in = -92.39   !- Cell lon 
-lat_in = 29.03    !- Cell lat
-depth_in = 20.       !- Water depth from surface to bottom
-Rad_in = 1.       !Rad
-/
-
 &switches
 !------------------------------------------------------------------------
 !Switches in CGEM
@@ -197,6 +174,4 @@ OM1_BC_init = 0. !157.09488                   !OM1_bc
 OM2_BC_init = 0. !333.65701                   !OM2_bc
 ALK_init = 2134               !ALK 
 Tr_init = 1                  !Tr
-S_init = 30.  !Salinity (psu)
-T_init = 16.  !Temperature (C)
 /

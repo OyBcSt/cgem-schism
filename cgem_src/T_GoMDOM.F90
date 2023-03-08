@@ -1,8 +1,7 @@
 !---------------------------------------------------------------------------
-  SUBROUTINE T_GoMDOM( T, Tadj )   
+  SUBROUTINE T_GoMDOM( T, Tadj, is_diatom, nospA, nospZ )   
 !---------------------------------------------------------------------------
 
-  USE cgem_vars, ONLY: is_diatom,nospA,nospZ      
   !--------------------------------------------------------------------------
   ! INPUT:  
   !   T = temperature [degree C]
@@ -14,6 +13,7 @@
   !------------------------------------------------------------------------
     IMPLICIT NONE
 
+    INTEGER, INTENT(IN) :: nospA, nospZ, is_diatom(nospA)
     REAL, INTENT(IN) :: T    ! Temperature (deg C)
     REAL, INTENT(OUT), DIMENSION(nospA+nospZ) :: Tadj 
     REAL :: TMD, TMG, TZREF(nospZ), ZTHET

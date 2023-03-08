@@ -53,7 +53,7 @@ Subroutine DailyRad_init(TC_8, lat, lon, d, dz, d_sfc, A_k, CDOM_k, &
       integer, parameter :: iSDay = 86400
 
 #ifdef DEBUG
-write(6,*) "Begin DailyRad_init"
+write(6,*) "Begin DailyRad_init, nz, km",nz,km
 #endif
 
   ! Use fixed C:Chla to estimate chlorophyll a concentration
@@ -71,6 +71,11 @@ write(6,*) "Begin DailyRad_init"
   ! day to calculate the correct solar path.
 
   CALL DATE_TIMESTAMP( iYr0, TC_8, iYr, iMon, iDay, iHr, iMin, iSec )
+
+#ifdef DEBUG
+write(6,*) "DailyRad_init, datetime",iYr0,TC_8
+#endif
+
 
 ! Now calculate the Julian Day associated with model time TC_8
       jul_day = JDAY_IN_YEAR(iYr, iMon, iDay)

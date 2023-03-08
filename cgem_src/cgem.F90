@@ -1,5 +1,5 @@
 !!======================================================================     
-    Subroutine CGEM( TC_8, istep, id, ivar )
+    Subroutine CGEM( TC_8, istep, ivar )
 
 !======================================================================
      use cgem_vars
@@ -14,7 +14,6 @@
 !---------------------------------------------------------------------
     integer(kind=8), intent(in) :: TC_8         ! Model time (seconds from beginning of Jan 1, 2002)
     integer, intent(in)  :: istep     ! Current time step
-    integer, intent(in)  :: id     ! 3d element...hopefully get rid of later 
     integer, intent(in)  :: ivar   ! Which variable to print out...just k=1
 !---------------------------------------------------------------------------------------
 ! Local Variables
@@ -372,6 +371,10 @@ write(6,*) "In cgem, calculate SunZenithAtm is next, Which_irradiance=",Which_ir
                  & d(nz), dz, nz, d_sfc,                          &
                  & PARdepth_k       )
 
+#ifdef DEBUG
+     write(6,*) "PARsurf,SunZenithAtm,PARbottom",PARsurf,SunZenithAtm,PARdepth_k(nz)
+#endif
+
                  !-------------------------------------------------
          case (2)! Upgraded form of the original underwater light
                  ! model of Pete Eldridge is used. Now accounts for
@@ -528,7 +531,7 @@ write(6,*) "In cgem, initialized state vars"
 !--------------------------------------
 ! Call temperature and growth functions
 !-----------------------------------------
-      call func_T( T_k(k),Tadj,nospA,nospZ,Tref,KTg1,KTg2,Which_temperature,Ea )
+      call func_T( T_k(k),Tadj,nospA,nospZ,is_diatom,Tref,KTg1,KTg2,Which_temperature,Ea )
 !         Nutrient dependent growth function
       call func_Qs( Qn_k(:,k), Qp_k(:,k), f_Qn, f_Qp, nospA,&
          nfQs,QmaxN,QminN,QmaxP,QminP,Which_uptake )
@@ -852,7 +855,7 @@ write(6,*) "In cgem, called mocsy"
 ! Particulate and Dissolved dead phytoplankton, rate of remineralization
 !--------------------------------------------------------------
         call reaction( OM1_A, OM2_A, O2, NO3, KG1, KG2, KO2, KstarO2, KNO3,               &
-     &  s_x1A(id,k), s_y1A(id,k), s_z1A(id,k), s_x2A(id,k), s_y2A(id,k), s_z2A(id,k), T_k(k), RC )
+     &  s_x1A(k), s_y1A(k), s_z1A(k), s_x2A(k), s_y2A(k), s_z2A(k), T_k(k), RC )
 
         RC        = one_d_365 * RC  !Change units from /year to /day
 
@@ -875,7 +878,7 @@ write(6,*) "In cgem, finished reaction A"
 ! Particulate and Dissolved fecal pellets, rate of remineralization
 !--------------------------------------------------------------
         call reaction( OM1_Z, OM2_Z, O2, NO3, KG1, KG2, KO2, KstarO2, KNO3,               &
-     &  s_x1Z(id,k), s_y1Z(id,k), s_z1Z(id,k), s_x2Z(id,k), s_y2Z(id,k), s_z2Z(id,k), T_k(k), RC )
+     &  s_x1Z(k), s_y1Z(k), s_z1Z(k), s_x2Z(k), s_y2Z(k), s_z2Z(k), T_k(k), RC )
         RC       = one_d_365 * RC   !Change units from /year to /day
 
         ROM1_Z     = RC(1)         ! units are /m3/day
@@ -1001,18 +1004,18 @@ write(6,*) "In cgem, PD OMs"
    !This calculates the cumulative stoichiometry ratios for OM1_A
    if(OM1_CA.gt.tiny(x)) then
 !   if(OM1_CA.ne.0) then
-    stoich_x1A = (OM1_CA*dTd + OM1_A) / (OM1_PA*dTd + (1/s_x1A(id,k))*OM1_A) ! C/P
-    stoich_y1A = (OM1_NA*dTd + (s_y1A(id,k)/s_x1A(id,k))*OM1_A) / (OM1_PA*dTd + (1/s_x1A(id,k))*OM1_A) !N/P
+    stoich_x1A = (OM1_CA*dTd + OM1_A) / (OM1_PA*dTd + (1/s_x1A(k))*OM1_A) ! C/P
+    stoich_y1A = (OM1_NA*dTd + (s_y1A(k)/s_x1A(k))*OM1_A) / (OM1_PA*dTd + (1/s_x1A(k))*OM1_A) !N/P
     stoich_z1A = 1.
    else
-    stoich_x1A = s_x1A(id,k)
-    stoich_y1A = s_y1A(id,k)
+    stoich_x1A = s_x1A(k)
+    stoich_y1A = s_y1A(k)
     stoich_z1A = 1.
    endif
    !Save for later timesteps and for netCDF files
-    s_x1A(id,k) = stoich_x1A
-    s_y1A(id,k) = stoich_y1A
-    s_z1A(id,k) = stoich_z1A
+    s_x1A(k) = stoich_x1A
+    s_y1A(k) = stoich_y1A
+    s_z1A(k) = stoich_z1A
 
 #ifdef DEBUG
 write(6,*) "In cgem, finished stoich OM1A"
@@ -1021,18 +1024,18 @@ write(6,*) "In cgem, finished stoich OM1A"
    !This calculates the cumulative stoichiometry ratios for OM2_A
    if(OM2_CA.gt.tiny(x)) then
 !    if(OM2_CA.ne.0) then
-    stoich_x2A = (OM2_CA*dTd + OM2_A) / (OM2_PA*dTd + (1/s_x2A(id,k))*OM2_A) ! C/P
-    stoich_y2A = (OM2_NA*dTd + (s_y2A(id,k)/s_x2A(id,k))*OM2_A) / (OM2_PA*dTd + (1/s_x2A(id,k))*OM2_A) !N/P
+    stoich_x2A = (OM2_CA*dTd + OM2_A) / (OM2_PA*dTd + (1/s_x2A(k))*OM2_A) ! C/P
+    stoich_y2A = (OM2_NA*dTd + (s_y2A(k)/s_x2A(k))*OM2_A) / (OM2_PA*dTd + (1/s_x2A(k))*OM2_A) !N/P
     stoich_z2A = 1.
    else
-    stoich_x2A = s_x2A(id,k)
-    stoich_y2A = s_y2A(id,k)
+    stoich_x2A = s_x2A(k)
+    stoich_y2A = s_y2A(k)
     stoich_z2A = 1.
    endif
    !Save for later timesteps and for netCDF files
-    s_x2A(id,k) = stoich_x2A
-    s_y2A(id,k) = stoich_y2A
-    s_z2A(id,k) = stoich_z2A
+    s_x2A(k) = stoich_x2A
+    s_y2A(k) = stoich_y2A
+    s_z2A(k) = stoich_z2A
 
 #ifdef DEBUG
 write(6,*) "In cgem, finished stoich OM2A"
@@ -1083,34 +1086,34 @@ write(6,*) "In cgem, OM1,2 Ratio=",OM1_Ratio,OM2_Ratio
    !This calculates the cumulative stoichiometry ratios for OM1_Z
    if(OM1_CZ.gt.tiny(x)) then
 !    if(OM1_CZ.ne.0) then
-    stoich_x1Z = (OM1_CZ*dTd + OM1_Z) / (OM1_PZ*dTd + (1./s_x1Z(id,k))*OM1_Z) ! C/P
-    stoich_y1Z = (OM1_NZ*dTd + (s_y1Z(id,k)/s_x1Z(id,k))*OM1_Z) / (OM1_PZ*dTd + (1./s_x1Z(id,k))*OM1_Z) !N/P
+    stoich_x1Z = (OM1_CZ*dTd + OM1_Z) / (OM1_PZ*dTd + (1./s_x1Z(k))*OM1_Z) ! C/P
+    stoich_y1Z = (OM1_NZ*dTd + (s_y1Z(k)/s_x1Z(k))*OM1_Z) / (OM1_PZ*dTd + (1./s_x1Z(k))*OM1_Z) !N/P
     stoich_z1Z = 1.
    else
-    stoich_x1Z = s_x1Z(id,k)
-    stoich_y1Z = s_y1Z(id,k)
+    stoich_x1Z = s_x1Z(k)
+    stoich_y1Z = s_y1Z(k)
     stoich_z1Z = 1.
    endif
    !Save for later timesteps and for netCDF files
-    s_x1Z(id,k) = stoich_x1Z
-    s_y1Z(id,k) = stoich_y1Z
-    s_z1Z(id,k) = stoich_z1Z
+    s_x1Z(k) = stoich_x1Z
+    s_y1Z(k) = stoich_y1Z
+    s_z1Z(k) = stoich_z1Z
 
    !This calculates the cumulative stoichiometry ratios for OM2_Z
    if(OM2_CZ.gt.tiny(x)) then
 !    if(OM2_CZ.ne.0) then
-    stoich_x2Z = (OM2_CZ*dTd + OM2_Z) / (OM2_PZ*dTd + (1./s_x2Z(id,k))*OM2_Z) !  C/P
-    stoich_y2Z = (OM2_NZ*dTd + (s_y2Z(id,k)/s_x2Z(id,k))*OM2_Z) / (OM2_PZ*dTd + (1./s_x2Z(id,k))*OM2_Z) !N/P
+    stoich_x2Z = (OM2_CZ*dTd + OM2_Z) / (OM2_PZ*dTd + (1./s_x2Z(k))*OM2_Z) !  C/P
+    stoich_y2Z = (OM2_NZ*dTd + (s_y2Z(k)/s_x2Z(k))*OM2_Z) / (OM2_PZ*dTd + (1./s_x2Z(k))*OM2_Z) !N/P
     stoich_z2Z = 1.
    else
-    stoich_x2Z = s_x2Z(id,k)
-    stoich_y2Z = s_y2Z(id,k)
+    stoich_x2Z = s_x2Z(k)
+    stoich_y2Z = s_y2Z(k)
     stoich_z2Z = 1.
    endif
    !Save for later timesteps and for netCDF files
-    s_x2Z(id,k) = stoich_x2Z
-    s_y2Z(id,k) = stoich_y2Z
-    s_z2Z(id,k) = stoich_z2Z
+    s_x2Z(k) = stoich_x2Z
+    s_y2Z(k) = stoich_y2Z
+    s_z2Z(k) = stoich_z2Z
 !------------------------------------------------------------------------
 #ifdef DEBUG
 write(6,*) "In cgem, finished stoich Z"
@@ -1231,7 +1234,7 @@ write(6,*) "In cgem, updated ALK"
 !--------------------------------------------------------------------
         enddo   ! end of  "do k = 1, nz" 
 
-write(6,*) ff(1,ivar)
+
 ! ----------------------------------------------------------------------
 
 

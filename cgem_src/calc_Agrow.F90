@@ -65,7 +65,7 @@ write(6,*) "In calc_Agrow: Begin calc_Agrow"
        do k = 1, nz
 
           !call func_T( T_k(k), Tadj ) ! Temperature adjustment
-          call func_T( T_k(k), Tadj,nospA,nospZ,Tref,KTg1,KTg2,Which_temperature,Ea )
+          call func_T( T_k(k), Tadj,nospA,nospZ,is_diatom,Tref,KTg1,KTg2,Which_temperature,Ea )
 !         call func_S( Qn(:,k), Qp(:,k), N(k), P(k), Si(k), f_N, f_P, f_Si ) ! Nutrient dependent growth function
           call func_S( Qn(:,k), Qp(:,k), N(k), P(k), Si(k), f_N, f_P, f_Si, nospA,&
                 Which_quota, QminN, QminP, QmaxN, QmaxP, is_diatom, KQn, KQp, KSi )

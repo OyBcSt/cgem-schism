@@ -158,14 +158,6 @@ write(6,*) "Call_IOP_Par:depth,dz,d_sfc:",depth,dz,d_sfc
 write(6,*) "Just called IOP_Paratt, PARdepth=:",k,PARdepth(k)
 #endif
 
-      if(PARdepth(k).ne.PARdepth(k)) then
-          write(6,*) "k,d,Par,a,b,Rad,zenith",k,d_sfc(k),PARdepth(k),a490_mid, bb490_mid, PARsurf, sun_zenith
-          write(6,*) "Chla_tot,CDOM_tot",Chla_tot(k),CDOM_tot(k)
-          write(6,*) "k,Sw,Chl,CDOM,OM1A,OM1Z,OM1R,OM1BC",k,aSw_mid,aChl490_mid, aCDOM490_mid , aOM1A490_mid , &
-            aOM1Z490_mid , aOM1R490_mid,aOM1BC490_mid
-          write(6,*) "nz,d_sfc(:)",nz,d_sfc
-          stop
-      endif
    enddo
 
 ! Calculate PAR at sea bottom

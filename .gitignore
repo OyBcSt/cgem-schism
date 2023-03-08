@@ -1,5 +1,6 @@
 # crud
 *genmod.f90
+*.nc
 
 # Prerequisites
 *.d

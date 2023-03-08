@@ -1,5 +1,5 @@
 !---------------------------------------------------------------------------
-  SUBROUTINE func_T( T, Tadj,nospA,nospZ,Tref,KTg1,KTg2,Which_temperature,Ea )   
+  SUBROUTINE func_T( T, Tadj,nospA,nospZ,is_diatom,Tref,KTg1,KTg2,Which_temperature,Ea )   
 !---------------------------------------------------------------------------
 
   !--------------------------------------------------------------------------
@@ -12,7 +12,7 @@
   ! REFERENCES:
   !------------------------------------------------------------------------
     IMPLICIT NONE
-    INTEGER, INTENT(IN) :: nospA,nospZ,Which_temperature
+    INTEGER, INTENT(IN) :: nospA,nospZ,Which_temperature,is_diatom(nospA)
     REAL, INTENT(IN), DIMENSION(nospA+nospZ) :: Tref,KTg1,KTg2,Ea
     REAL, INTENT(IN) :: T    ! Temperature (deg C)
     REAL, INTENT(OUT), DIMENSION(nospA+nospZ) :: Tadj 
@@ -24,6 +24,11 @@
     REAL             :: denom(nospA+nospZ)
     REAL             :: T_in_K,Tref_in_K(nospA+nospZ)
     INTEGER          :: i
+
+
+#ifdef DEBUG
+write(6,*) "func_T, nospA, Which_temperature",nospA,Which_temperature
+#endif
 
 
     if (Which_temperature.eq.1) then !Sigmoidal 
@@ -42,7 +47,7 @@
       Tref_in_K(:) = Tref(:) + 273.15 !Temp. in Kelvin 
       Tadj(:) = exp ( -(Ea(:)/k_b) * ( 1./T_in_K - 1./Tref_in_K(:) ) ) 
     else if (Which_temperature.eq.4) then !GoMDOM temperature functions
-      call T_GoMDOM(T, Tadj)
+      call T_GoMDOM(T, Tadj, is_diatom, nospA, nospZ)
     else  
       write(6,*) "Error in func_T"
       stop
