@@ -1,6 +1,6 @@
 import subprocess
 import numpy as np
-import matplotlib as plt
+import matplotlib.pylot as plt
 
 def cgem_plot1D(which_var):
     print("Plotting CGEM variable",which_var)
