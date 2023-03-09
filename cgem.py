@@ -1,6 +1,7 @@
 import subprocess
 import numpy as np
 import matplotlib.pyplot as plt
+from datetime import datetime, timedelta
 
 def cgem_plot1D(which_var):
     print("Plotting CGEM variable",which_var)
@@ -24,7 +25,7 @@ def cgem_tstart(grid):
     iHrS = grid.get('grid').get('ihrs')
     iMinS = grid.get('grid').get('imins')
     iSecS = grid.get('grid').get('isecs')
-    T = datetime.datetime(iYrS, iMonS, iDayS, iHrS, iMinS, iSecS)
+    T = datetime(iYrS, iMonS, iDayS, iHrS, iMinS, iSecS)
     return T
 
 def cgem_tend(grid):
@@ -34,15 +35,15 @@ def cgem_tend(grid):
     iHrE = grid.get('grid').get('ihre')
     iMinE = grid.get('grid').get('imine')
     iSecE = grid.get('grid').get('isece')
-    dtout = grid.get('grid').get('dt_out')
+    T = datetime(iYrE, iMonE, iDayE, iHrE, iMinE, iSecE)
     return T
 
 def cgem_timearray(var,grid):
     Tstart = cgem_tstart(grid)
     dtout = grid.get('grid').get('dt_out')
-    dt = datetime.timedelta(seconds=dtout)
+    dt = timedelta(seconds=dtout)
     res = []
-    for x in range (0, len(A)):
+    for x in range (0, len(var)):
         res.append(Tstart+x*dt)
     return res
 
