@@ -19,28 +19,28 @@ def cgem_getvar(which_var):
     return result
         
 def cgem_tstart(grid):
-    iYrS = grid.get('grid').get('iyrs')
-    iMonS = grid.get('grid').get('imons')
-    iDayS = grid.get('grid').get('idays')
-    iHrS = grid.get('grid').get('ihrs')
-    iMinS = grid.get('grid').get('imins')
-    iSecS = grid.get('grid').get('isecs')
+    iYrS = grid.get('time').get('iyrs')
+    iMonS = grid.get('time').get('imons')
+    iDayS = grid.get('time').get('idays')
+    iHrS = grid.get('time').get('ihrs')
+    iMinS = grid.get('time').get('imins')
+    iSecS = grid.get('time').get('isecs')
     T = datetime(iYrS, iMonS, iDayS, iHrS, iMinS, iSecS)
     return T
 
 def cgem_tend(grid):
-    iYrE = grid.get('grid').get('iyre')
-    iMonE = grid.get('grid').get('imone')
-    iDayE = grid.get('grid').get('idaye')
-    iHrE = grid.get('grid').get('ihre')
-    iMinE = grid.get('grid').get('imine')
-    iSecE = grid.get('grid').get('isece')
+    iYrE = grid.get('time').get('iyre')
+    iMonE = grid.get('time').get('imone')
+    iDayE = grid.get('time').get('idaye')
+    iHrE = grid.get('time').get('ihre')
+    iMinE = grid.get('time').get('imine')
+    iSecE = grid.get('time').get('isece')
     T = datetime(iYrE, iMonE, iDayE, iHrE, iMinE, iSecE)
     return T
 
 def cgem_timearray(var,grid):
     Tstart = cgem_tstart(grid)
-    dtout = grid.get('grid').get('dt_out')
+    dtout = grid.get('time').get('dT')
     dt = timedelta(seconds=dtout)
     res = []
     for x in range (0, len(var)):

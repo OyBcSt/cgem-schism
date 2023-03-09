@@ -4,8 +4,8 @@
 
 OBJ  =  \
 	date_time.o\
-        grid_vars.o\
-        cgem_vars.o\
+        grid.o\
+        cgem.o\
         phyto_growth.o\
 	Command_Line_Args.o\
 	MPI_dummy.o\
@@ -19,10 +19,9 @@ OBJ  =  \
         model_init.o\
 	Check_InputFile.o\
 	update_grid.o\
-        Calc_Chla.o\
 	getSolar.o\
         DailyRad_init.o\
-	cgem.o\
+	run_cgem.o\
         SDM.o\
 	T_GoMDOM.o\
 	Nitrification.o\

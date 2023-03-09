@@ -9,7 +9,7 @@
 !-----------------------------------------------------------------------
 ! Code is based on Brad Penta's code
 !---------------------------------------------------------------------
-  USE cgem_vars, only: km,aw490,astar490,astarOMA,astarOMZ,astarOMR,astarOMBC 
+  USE cgem, only: km,aw490,astar490,astarOMA,astarOMZ,astarOMR,astarOMBC 
 
   IMPLICIT NONE 
 

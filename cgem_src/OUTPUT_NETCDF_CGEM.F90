@@ -11,7 +11,7 @@ MODULE OUTPUT_NETCDF_CGEM
   USE NETCDF_UTILITIES ! For CHKERR, DEFDIM, DEFVI1, CONVERT_LONGITUDES, etc.
   USE DATE_TIME ! For TOTAL_SECONDS
   USE OUTPUT
-  use cgem_vars, only:nospA, nospZ
+  USE cgem, only:nospA,nospZ,nf
 
   IMPLICIT NONE
 
@@ -314,7 +314,6 @@ CONTAINS
 
 Subroutine OUTPUT_NETCDF_CGEM_allocate
 
-  USE cgem_vars, only:nospA,nospZ,nf 
   USE OUTPUT 
 
   IMPLICIT NONE

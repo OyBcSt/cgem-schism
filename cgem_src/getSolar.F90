@@ -36,7 +36,6 @@
                                                  ! Morel and Smith (1974)
       real, parameter :: OneD60   =  1./60.
       real, parameter :: OneD3600 =  1./3600.              
-      integer  :: i,j  
       integer  :: jday
       real                :: rhr         ! decimal hr in the Julian Day 
       real                :: Z   ! solar zenith angle 

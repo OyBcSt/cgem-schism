@@ -1,6 +1,6 @@
       Subroutine Command_Line_Args(ivar)
 
-      use cgem_vars
+      use cgem
 
       implicit none
 

@@ -30,7 +30,7 @@ Subroutine SDM_allocate()
 
 !YY is giant, so only allocated SDM arrays if SDM is used
 
-use cgem_vars, only: nea 
+use grid, only: nea 
 
 IMPLICIT NONE
 

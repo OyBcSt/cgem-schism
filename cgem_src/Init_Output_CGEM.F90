@@ -1,8 +1,8 @@
        Subroutine Init_Output_CGEM(BASE_NETCDF_OUTPUT_FILE_NAME)
 
        USE OUTPUT_NETCDF_CGEM
-       USE grid_vars
-       USE cgem_vars
+       USE grid
+       USE cgem
        USE date_time
 
        IMPLICIT NONE

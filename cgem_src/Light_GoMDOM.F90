@@ -2,7 +2,7 @@
   SUBROUTINE Light_GoMDOM(PARsurf, S, A, Z, OM1A, OM1Z, OM1R, OM1BC, dz, PAR_percent, PARbot, PARdepth, nz  )   
 !---------------------------------------------------------------------------
 
-  USE cgem_vars, ONLY:Qc,ZQc,km,nospA,nospZ
+  USE cgem, ONLY:Qc,ZQc,km,nospA,nospZ
     
   !--------------------------------------------------------------------------
   ! INPUT:  

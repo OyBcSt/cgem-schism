@@ -25,11 +25,11 @@ call Command_Line_Args(ivar)
 !    Subroutine CGEM( TC_8, istep )
 
 #ifdef DEBUG
-write(6,*) "In main, before cgem, TC_8:",TC_8
+write(6,*) "In main, before run_cgem, TC_8:",TC_8
 #endif
 
 do istep=1,nstep
-call cgem(TC_8,istep,ivar)
+call run_cgem(TC_8,istep,ivar)
 TC_8 = TC_8 + dT
 call update_grid(TC_8,istep)
 enddo

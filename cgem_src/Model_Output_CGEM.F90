@@ -1,7 +1,7 @@
       Subroutine Model_Output_CGEM
 
-      use grid_vars
-      use cgem_vars
+      use grid
+      use cgem
       use OUTPUT_NETCDF_CGEM
 
       IMPLICIT NONE

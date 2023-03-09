@@ -1,9 +1,9 @@
 ! This routine initializes the previous day's irradiance for use by the
 ! Cloern Chl:C algorithm.
 Subroutine DailyRad_init(TC_8, lat, lon, d, dz, d_sfc, A_k, CDOM_k, &
-           & OM1A_k, OM1Z_k, OM1R_k, OM1BC_k, aDailyRad_k, nz)
+           & OM1A_k, OM1Z_k, OM1R_k, OM1BC_k, aDailyRad_k)
 
-  USE cgem_vars, only: iYr0,Qc,CChla,dT,km,nospA ! For iYr0, etc.
+  USE cgem, only: iYr0,Qc,CChla,dT,km,nospA ! For iYr0, etc.
   USE date_time ! For SECONDS_PER_DAY, TOTAL_SECONDS, DATE_TIMESTAMP
 
   implicit none
@@ -20,7 +20,6 @@ Subroutine DailyRad_init(TC_8, lat, lon, d, dz, d_sfc, A_k, CDOM_k, &
   real, intent(in) :: OM1Z_k(km)
   real, intent(in) :: OM1R_k(km)
   real, intent(in) :: OM1BC_k(km)
-  integer, intent(in) :: nz !Number of Layers
 
   ! Output variables
   real, intent(out) :: aDailyRad_k(km)
@@ -53,11 +52,11 @@ Subroutine DailyRad_init(TC_8, lat, lon, d, dz, d_sfc, A_k, CDOM_k, &
       integer, parameter :: iSDay = 86400
 
 #ifdef DEBUG
-write(6,*) "Begin DailyRad_init, nz, km",nz,km
+write(6,*) "Begin DailyRad_init, km",km
 #endif
 
   ! Use fixed C:Chla to estimate chlorophyll a concentration
-  do k = 1, nz
+  do k = 1, km 
      Chla_tot_k(k) = 0.0
      do isp = 1, nospA
         Chla_tot_k(k) =  Chla_tot_k(k)  + A_k(isp,k) * Qc(isp) * 12. * (1./CChla(isp))
@@ -87,7 +86,7 @@ write(6,*) "DailyRad_init, datetime",iYr0,TC_8
 
      if(SfcRad .gt. 0.) then
         Call Call_IOP_PAR(SfcRad, Zenith, CDOM_k, Chla_tot_k, &
-             & OM1A_k, OM1Z_k, OM1R_k, OM1BC_k, d(nz), dz, nz, d_sfc, aRadMid) 
+             & OM1A_k, OM1Z_k, OM1R_k, OM1BC_k, d(km), dz, km, d_sfc, aRadMid) 
 
         ! Add to running total
         aRadSum(:) = aRadSum(:) + aRadMid(:)

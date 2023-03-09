@@ -4,7 +4,7 @@
                                         & s_y2Z, s_z2Z, YY_ij, ppH_ij )
 
       USE Model_dim
-      use cgem_vars, only: nf
+      use cgem, only: nf
       USE SDM, only: A, NPOINTS, NEQ, nsed
       USE Model_Diagenesis, ONLY: model
 

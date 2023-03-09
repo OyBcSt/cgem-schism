@@ -1,7 +1,7 @@
 Subroutine Check_InputFile()
 
-use grid_vars
-use cgem_vars
+use grid
+use cgem
 
 IMPLICIT NONE
 

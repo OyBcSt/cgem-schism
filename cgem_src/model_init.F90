@@ -1,8 +1,8 @@
 subroutine model_init(TC_8,dT_dum,nsteps)
 
 use date_time
-use grid_vars
-use cgem_vars
+use grid
+use cgem
 
 #ifdef NCFILE
 use OUTPUT_NETCDF_CGEM
@@ -16,10 +16,12 @@ integer, intent (out) :: dT_dum, nsteps  !pass back dT
 character(100) :: BASE_NETCDF_OUTPUT_FILE_NAME
 !Allocates nea, km(nvrt), nospA/Z, ff
 
-call grid_vars_allocate
-call grid_init
-call cgem_vars_allocate
-call cgem_init
+!Initialize grid
+call grid_setup
+
+!Initialize cgem
+call cgem_setup
+
 ! Compute starting time of run in seconds since Model_dim::iYr0:
 TC_8 = TOTAL_SECONDS( iYr0, iYrS, iMonS, iDayS, iHrS, iMinS, iSecS )
 nsteps = nstep !nstep is from grid_vars
