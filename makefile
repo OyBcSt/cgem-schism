@@ -20,10 +20,10 @@
 
 ### =============== End User Modifiable Section  =============== ####
 include moc_src/src_files
-#include sdm_src/src_files
+include sdm_src/src_files
 cgemdir=cgem_src
 mocdir=moc_src
-#sdmdir=sdm_src
+sdmdir=sdm_src
 
 EXE = CGEM.exe
 
@@ -39,7 +39,7 @@ ifeq "$(ERR)" "0"
   FC = ifort
   INC = -I/usr/local/usrapps/ncdfutil/cmaq-libs/intel2018.4-ncdf4/netcdf/include
   LIBS = -L/usr/local/usrapps/ncdfutil/cmaq-libs/intel2018.4-ncdf4/netcdf/lib -lnetcdff -lnetcdf
-  #DFLAGS = -g -warn -debug all -g -check all -ftrapuv -DDEBUG #-mcmodel=medium -shared-intel
+  DFLAGS = -g -warn -debug all -g -check all -ftrapuv #-DDEBUG #-mcmodel=medium -shared-intel
   CFLAGS = -DNCFILE
   include cgem_src/src_nc
 else
@@ -62,7 +62,7 @@ cgem: ${MOC_OBJ} ${OBJ} ${SDM_OBJ}
 $(OBJ):%.o: $(cgemdir)/%.F90
 	$(F90) -c $(FFLAGS) $(CFLAGS) $(DFLAGS) $(INC) $<
 
-$(SDM_OBJ): %.o: $(sdmdir)/%.f
+$(SDM_OBJ): %.o: $(sdmdir)/%.F90
 	$(F90) -c $(FFLAGS_SDM) $<
 
 $(MOC_OBJ):%.o: $(mocdir)/%.F90

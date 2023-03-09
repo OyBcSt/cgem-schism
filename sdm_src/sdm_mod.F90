@@ -1,12 +1,38 @@
-!
+module coupleRate 
+
+  use SDM, only: NPOINTS, NEQ, nsed,sO2,sNO3,sNH4,sDIC,sOM1,sOM2,sALK,sALK,sDOC
+
+  implicit none
+
+  DATA ZERO/0.0D+00/,ONE/1.0D+00/,TWO/2.0D+00/,THREE/3.0D+00/
+  DATA FOUR/4.0D+00/,FIVE/5.0D+00/,EIGHT/8.0D+00/
+  DATA TEN/1.0D+01/,TWENTY/2.0D+01/,THIRTY/3.0D+01/
+  DATA FIFTY/3.0D+02/,SEVENTY/7.0D+1/
+  DATA HUN/1.0D+02/,FIVEHUN/5.0D+02/,THOU/1.0D+03/
+  DATA YEAR/3.156D+07/
+
+contains
+
 !-----------------------------------------------------------------------
 !  SUBROUTINE CASES: provides initial conditions from a steady state
 !  model than at each designated output time provides a new input vector
 !-----------------------------------------------------------------------
+       SUBROUTINE CASES(value1,value2,Y,ppH,ISTATE,IFLAG,Ainp)
+
+!From my code
+!      CALL CASES(val1(IC), val2(IC), YY_ij, ppH_ij, ISTATE, IFLAG, Ainp)0
+!      REAL(kind=8) :: val1(400), val2(400)
+!      INTEGER :: n_its, nss, np, IC
+!      REAL(kind=8), INTENT(INOUT) :: YY_ij(NEQ)
+!      REAL(kind=8), INTENT(INOUT) :: ppH_ij(NPOINTS)
+!      INTEGER :: IFLAG, ISTATE
+!      REAL(kind=8) :: Ainp(100)
 !
-!
-      SUBROUTINE CASES(value1,value2,Y,ppH,ISTATE,IFLAG,Ainp)
-      IMPLICIT REAL*8 (A-H,O-Z)
+      INTEGER, INTENT(IN) :: ISTATE,IFLAG
+      REAL(KIND=8), DIMENSION(400), INTENT(IN) :: value1, value2
+      REAL(KIND=8), INTENT(INOUT) :: Y(NEQ)
+      REAL(KIND=8), INTENT(INOUT) :: ppH(NPOINTS)
+
       EXTERNAL FEX2,JEX
       INTEGER IWORK,LRW,LIW,MU,ML,ITASK,ISTATE,IOPT,ITOL,IPAR
       PARAMETER (MAXNEQ=27000)
@@ -84,8 +110,8 @@ C     PARAMETER (LRW=22+9*MAXNEQ+2*MAXNEQ**2)
 !      write(*,*) 'NEQ', NEQ
 !      write(*,*) "Value1,Value2",value1,value2
 
-      CALL DVODE(FEX2,NEQ,Y,T,TOUT,ITOL,RTOL,ATOL,ITASK,
-     #    ISTATE,IOPT,RWORK,LRW,IWORK,LIW,JEX,MF,RPAR,IPAR)
+      CALL DVODE(FEX2,NEQ,Y,T,TOUT,ITOL,RTOL,ATOL,ITASK, &
+         ISTATE,IOPT,RWORK,LRW,IWORK,LIW,JEX,MF,RPAR,IPAR)
 
 !      write(6,*) "In CASES,after DVODE, Y1=",Y(1)
 !      write(6,*) "In CASES,after DVODE, pH1=",pH(1)
@@ -106,7 +132,7 @@ C     PARAMETER (LRW=22+9*MAXNEQ+2*MAXNEQ**2)
       
 
       SUBROUTINE FEX2(NEQ,T,Y,YDOT,RPAR,IPAR)
-      IMPLICIT REAL*8 (A-H,O-Z)
+
       REAL*8 NO30,NH30,IRRIG,NH3I,MnO0,Mn20,O20,KANH4, KADS_p 
       PARAMETER (MAXNEQ=27000)
       DIMENSION Y(NEQ),YDOT(NEQ),RATE(MAXNEQ)
@@ -138,9 +164,6 @@ C     PARAMETER (LRW=22+9*MAXNEQ+2*MAXNEQ**2)
       COMMON /RATES/ RATE
       COMMON /pHes/ pH
 
-
-      DATA ZERO/0.0D+00/,ONE/1.0D+00/,TWO/2.0D+00/
-      DATA FOUR/4.0D+00/,FIVE/5.0D+00/
 
 !L3 see if this fixes rank thing
       REAL*8 TESTALK
@@ -980,9 +1003,6 @@ C
 C.......................................................................
 C
 
-!      SUBROUTINE REACTION_SDM(TESTOM1,TESTOM2,TESTOM3,TESTO2,TESTNIT,
-!     *TESTNH3,TESTSO4,TESTTS,TESTFE3,TESTFE2,TESTMNO,TESTMN2,TESTFES,
-!     *TESTTC,TESTALK,Rc,pH,F,dtemp)
        CALL REACTION_SDM (TESTOM1,TESTOM2,TESTDOM,TESTO2,TESTNIT,TESTNH3,
      *   TESTSO4,TESTTS,TESTFE3,TESTFE2,TESTMNO,TESTMN2,TESTFES,
      *   TESTTC,TESTALK,Rc,pH(I),F,dtemp)
@@ -1525,6 +1545,8 @@ C   JEX	A DUMMY ROUTINE FOR THE JACOBIAN CALLED BY VODE.f
 C
 C
       SUBROUTINE JEX (NEQ, T, Y, ML, MU, PD, NRPD, RPAR, IPAR)
+
+
       DOUBLE PRECISION PD, RPAR, T, Y
       DIMENSION Y(NEQ), PD(NRPD,NEQ)
       RETURN
@@ -1538,7 +1560,8 @@ C
       SUBROUTINE REACTION_SDM(TESTOM1,TESTOM2,TESTOM3,TESTO2,TESTNIT,
      *TESTNH3,TESTSO4,TESTTS,TESTFE3,TESTFE2,TESTMNO,TESTMN2,TESTFES,
      *TESTTC,TESTALK,Rc,pH,F,dtemp)
-      IMPLICIT REAL*8 (A-H,O-Z)
+
+
       REAL*8 KG1,KG2,KDOM
       REAL*8 KO2, KNO3, KMNO,  KFE3,  KSO4
       REAL*8 k8,k10,k11,k12,k13,k14
@@ -1553,8 +1576,6 @@ C
       COMMON /STOIC/ SC1,SN1,SP1,SC2,SN2,SP2,SC3,SN3,SP3
       COMMON /TEMPERATURE/ TEMP, SAL, PRESS,pH0
 C
-      DATA ZERO/0.0D+00/,ONE/1.0D+00/,TWO/2.0D+00/,HUN/1.0D+02/
-      DATA THREE/3.0D+00/,FOUR/4.0D+00/,FIVE/5.0D+00/,EIGHT/8.0D+00/
 
 
 C
@@ -1793,7 +1814,8 @@ C PURPOSE: CLOSED SYSTEM CALCULATIONS
 C ----------------------------------------------------------------
 C
       SUBROUTINE salclosed_SDM(spc,s,ALK,TC,TS,t,pH)
-      IMPLICIT REAL*8 (A-Z)
+
+
       DIMENSION rk(9),spc(9)
       CALL thermowater(rK,s,t)
       rK1=rK(4)
@@ -1839,7 +1861,6 @@ C
 !          Whitfield and Turner (1986)
 ! -----------------------------------------------------------------
       SUBROUTINE thermowater(rk,s,tz)
-      IMPLICIT none
       INTEGER i,j
       REAL*8 a0, a1, a2, b0,s,rk,rk1s,tz,t
       DIMENSION a0(8), a1(8), a2(8), b0(8),rk(9)
@@ -1885,12 +1906,9 @@ C
 
 
       DOUBLE PRECISION FUNCTION RNITRATE_SDM(O20)
-      IMPLICIT REAL*8 (A-H,O-Z)
       REAL*8 KG1,KG2,KDOM, KPO2
       REAL*8 KO2, KNO3, KMNO,  KFE3,  KSO4
       COMMON /KINETICS/ KG1,KG2,KDOM,KO2,KNO3,KMNO,KFE3,KSO4
-      DATA ZERO/0.0D+00/,ONE/1.0D+00/,TWO/2.0D+00/,HUN/1.0D+02/
-      DATA TEN/1.0D+01/
 ! JCL, note that KO2 from hypox_input is modified, I removed /HUN
        KPO2= KO2
        PO2=O20
@@ -1906,14 +1924,11 @@ C
 C
 C
       DOUBLE PRECISION FUNCTION RMANGANESE(O20,NO30)
-      IMPLICIT REAL*8 (A-H,O-Z)
       REAL*8 NO30
       REAL*8 KG1,KG2,KDOM
       REAL*8 KPO2,KPNO3
       REAL*8 KO2, KNO3, KMNO,  KFE3,  KSO4
       COMMON /KINETICS/ KG1,KG2,KDOM,KO2,KNO3,KMNO,KFE3,KSO4
-      DATA ZERO/0.0D+00/,ONE/1.0D+00/,TWO/2.0D+00/,HUN/1.0D+02/
-      DATA TEN/1.0D+01/,TWENTY/2.0D+01/,FIFTY/3.0D+02/
 ! JCL, note that KO2 and KNO3 from hypox_input are modified here, removed/FIFTY
       KPO2= KO2
       KPNO3= KNO3
@@ -1934,15 +1949,11 @@ C
 C
 C
       DOUBLE PRECISION FUNCTION RFERRIC(O20,NO30,MNO)
-      IMPLICIT REAL*8 (A-H,O-Z)
       REAL*8 NO30,MNO
       REAL*8 KG1,KG2,KDOM
       REAL*8 KO2, KNO3, KMNO,  KFE3,  KSO4
       REAL*8 KPO2,KPNO3,KPMNO
       COMMON /KINETICS/ KG1,KG2,KDOM,KO2,KNO3,KMNO,KFE3,KSO4
-      DATA ZERO/0.0D+00/,ONE/1.0D+00/,TWO/2.0D+00/,HUN/1.5D+02/
-      DATA TEN/1.0D+01/,FIFTY/5.0D+01/,SEVENTY/7.0D+1/
-      DATA FIVEHUN/5.0D+02/
 ! JCL, note that KO2,KNO3, KMNO from hypox_input are modified here, removed /HUN
       KPO2= KO2
       KPNO3= KNO3
@@ -1968,13 +1979,10 @@ C
 C
 C
       DOUBLE PRECISION FUNCTION RSULFATE(O20,NO30,MNO,FE30)
-      IMPLICIT REAL*8 (A-H,O-Z)
       REAL*8 KG1,KG2,KDOM,MNO
       REAL*8 KPO2,KPNO3,KPMNO,KPFE3, NO30
       REAL*8 KO2, KNO3, KMNO, KFE3, KSO4
       COMMON /KINETICS/ KG1,KG2,KDOM,KO2,KNO3,KMNO,KFE3,KSO4
-      DATA ZERO/0.0D+00/,ONE/1.0D+00/,TWO/2.0D+00/,HUN/1.0D+02/
-      DATA TEN/1.0D+01/,TWENTY/2.0D+01/,THIRTY/3.0D+01/
 ! JCL, note that KO2,KNO3,KMNO, KFE3 from hypox_input are modified here, removed /THIRTY
       KPO2= KO2
       KPNO3= KNO3
@@ -2005,11 +2013,9 @@ C   feedback function.
 C
 C
       DOUBLE PRECISION FUNCTION rMandy(HS)
-      IMPLICIT REAL*8 (A-H,O-Z)
       REAL*8 KG1,KG2,KDOM,KO2,KNO3,KMNO,KFE3,KSO4
       REAL*8 KPSO4
       COMMON /KINETICS/ KG1,KG2,KDOM,KO2,KNO3,KMNO,KFE3,KSO4
-      DATA ZERO/0.0D+00/,HUN/1.0D+02/
 ! JCL, note that KS04 is modified here, removed /HUN
        KPSO4= KSO4
        PHS=HS
@@ -2037,10 +2043,10 @@ C     U = porewater advection velocity at depth X
 C
 C
       SUBROUTINE SED(X,P,DPDX,U,W)
-      IMPLICIT REAL*8 (A-H,O-Z)
+
+
       COMMON /POROS/ P0,P00,BP
       COMMON /ADVEC/ W00
-      DATA ZERO/0.0D+00/,ONE/1.0D+00/
 C
       IF(BP.EQ.ZERO.OR.(P0-P00).EQ.ZERO) THEN
            P = P0
@@ -2071,9 +2077,9 @@ C
 
 
       SUBROUTINE TORT2(T2,DT2DX,P,DPDX,X)
-      IMPLICIT REAL*8 (A-H,O-Z)
-      DATA ZERO/0.0D+00/,ONE/1.0D+00/,TWO/2.0D+00/,
-     #     FOUR/4.0D+00/
+
+
+
 
       T2 = ONE - TWO*DLOG(P)
       DT2DX = - FOUR/P*DPDX
@@ -2085,53 +2091,37 @@ C
 
 !   DB	Contains the expressions for the depth-dependent
 !		mixing coefficient
-
-
         DOUBLE PRECISION FUNCTION DB(X)
-        IMPLICIT REAL*8 (A-H,O-Z)
         COMMON /MIX/ X1,X2
         COMMON / BIOT/ Db0
 
-      DATA ZERO/0.0D+00/,ONE/1.0D+00/,TWO/2.0D+00/,HUN/1.0D+02/
-C
       IF(X.LE.X1) DB = DB0
       IF(X.GT.X1.AND.X.LT.X2) DB = DB0*(X2-X)/(X2-X1)
       IF(X.GE.X2) DB = ZERO
-C
+
       RETURN
       END
-C
-C
-C
-C
-C   DDB	Contains the depth derivatives of DB(X)
-C
-C
+
+!
+!   DDB	Contains the depth derivatives of DB(X)
+!
       DOUBLE PRECISION FUNCTION DDB(X)
-      IMPLICIT REAL*8 (A-H,O-Z)
       COMMON /MIX/ X1,X2
         COMMON /BIOT/ Db0
 
-      DATA ZERO/0.0D+00/,ONE/1.0D+00/,TWO/2.0D+00/,HUN/1.0D+02/
-C
       IF(X.LE.X1) DDB = ZERO
       IF(X.GT.X1.AND.X.LT.X2) DDB = -DB0/(X2-X1)
       IF(X.GE.X2) DDB = ZERO
-C
+
       RETURN
       END
-
-
 
 
 !   SIG	Calculates the weighting for the finite difference
 !		approximation for the advective term (see Boudreau,
 !		1986, Amer. J. Sci., v. 286, p.192)
-
       DOUBLE PRECISION FUNCTION SIG(X,W)
-      IMPLICIT REAL*8 (A-H,O-Z)
       COMMON /DEPTH/ XL,DH
-      DATA ZERO/0.0D+00/,ONE/1.0D+00/,TWO/2.0D+00/,HUN/1.0D+02/
 
       D = DB(X)
       IF(D.NE.ZERO) THEN
@@ -2152,7 +2142,8 @@ C
 
       SUBROUTINE FILL_Y(NEQ,np,nss,Y,G1,G2,O2,rNO3,rNH4,rMN2,
      *                  FE3,FE2,SO4,HS,FES,TC,ALK,DOM,Os,Ob)
-      IMPLICIT REAL*8 (A-H,O-Z)
+
+
       PARAMETER (MAXNEQ=27000)
       DIMENSION Y(NEQ+2)
       DIMENSION G1(*),G2(*),O2(*),rNO3(*),rNH4(*),rMN2(*)
@@ -2217,13 +2208,13 @@ C
      * tempG1,tempG2,tempO2,tempNO3,tempNH4,tempMN2,
      * tempFE2,tempSO4,tempHS,tempFES,tempTC,tempALK,tempDOM,
      * tempOs,tempOb)
-      IMPLICIT REAL*8 (A-H,O-Z)
+
+
       DIMENSION G1(*),G2(*),O2(*),rNO3(*),rNH4(*),rMN2(*)
       DIMENSION FE2(*),SO4(*),HS(*),FES(*),TC(*),ALK(*),DOM(*)
       DIMENSION Os(*),Ob(*)
       COMMON /SROOT/ ZROOT, WROOT
       COMMON /DEPTH/ XL,DH
-      DATA ZERO/0.0D+00/
 C
 C
       NROOT  =  INT(ZROOT/DH)
@@ -2291,7 +2282,8 @@ C     -----------------------------------------------------------------
       SUBROUTINE OUTVEC(rootG1,rootG2,rootO2,rootNO3,rootNH4,rootMN2,
      * rootFE2,rootSO4,rootHS,rootFES,rootTC,rootALK,rootDOM,
      * rootOs,rootOb,mm)
-      IMPLICIT REAL*8 (A-H,O-Z)
+
+
       DIMENSION rootG1(*),rootG2(*),rootO2(*),rootNO3(*),rootNH4(*),
      * rootMN2(*),rootFE2(*),rootSO4(*),rootHS(*),rootFES(*),rootTC(*),
      * rootALK(*),rootDOM(*),rootOs(*),rootOb(*)
@@ -2353,7 +2345,6 @@ C
 !     -----------------------------------------------------------------
       SUBROUTINE OUTFLUX(sedO2,sedNO3,sedNH4,sedSO4,sedDIC,sedDOC,
      * sedOM1,sedOM2, pycoO2,mm)
-      IMPLICIT REAL*8 (A-H,O-Z)
       DIMENSION sedO2(*),sedNO3(*),sedNH4(*),sedSO4(*),sedDIC(*),
      * sedDOC(*),sedOM1(*),sedOM2(*),pycoO2(*)
 
@@ -2389,7 +2380,6 @@ C
 !    ----- PROCEDURE provides input for diagenetic model
 
         subroutine datain(A,mrow,ncol)
-        IMPLICIT REAL*8 (A-H,O-Z)
         DIMENSION A(100,6)
         character*25 cdum1
         integer nits
@@ -2431,7 +2421,7 @@ C
 
       SUBROUTINE FILEDATA2(RPAR,Ainp)
 
-      IMPLICIT REAL*8 (A-H,O-Z)
+
 C
       PARAMETER (MAXNEQ=27000)
       DIMENSION RPAR(MAXNEQ)
@@ -2477,8 +2467,6 @@ C
 
 
 C
-      DATA ZERO/0.0D+00/,HUN/1.0D+02/
-      DATA YEAR/3.156D+07/,THOU/1.0D+03/
       NSPECIES = NS
       yr_sec   = 1/(3600*24*365)
       rho = 2.65
@@ -2669,4 +2657,4 @@ C
       RETURN
       END
 
-
+end module coupleRate 
