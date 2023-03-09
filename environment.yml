@@ -5,6 +5,7 @@ dependencies:
   - f90nml
   - numpy 
   - gfortran 
+  - notebook
   - pip
   - pip:
      - OpenTEA

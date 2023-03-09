@@ -1,6 +1,8 @@
 # crud
 *genmod.f90
 *.nc
+*__pycache__*
+
 
 # Prerequisites
 *.d
