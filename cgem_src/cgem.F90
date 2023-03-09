@@ -3,6 +3,7 @@
 
 !======================================================================
      use cgem_vars
+     use phyto_growth
      use Calc_Chla
      use date_time
      use mvars
@@ -448,7 +449,7 @@ write(6,*) "In cgem, summing daily rad, about to call calc_Agrow"
 
        if(nz .gt. 0) call calc_Agrow( PARdepth_k, T_k,              &
                      & Qn_k, Qp_k, N_k, P_k, Si_k , A_k, Agrow_k,   &
-                     & uA_k, Aresp_k, uN_k, uP_k, uE_k, uSi_k, nz  )
+                     & uA_k, Aresp_k, uN_k, uP_k, uE_k, uSi_k )
 
 !------end phytoplankton growth model-------------------------
 
@@ -531,10 +532,9 @@ write(6,*) "In cgem, initialized state vars"
 !--------------------------------------
 ! Call temperature and growth functions
 !-----------------------------------------
-      call func_T( T_k(k),Tadj,nospA,nospZ,is_diatom,Tref,KTg1,KTg2,Which_temperature,Ea )
-!         Nutrient dependent growth function
-      call func_Qs( Qn_k(:,k), Qp_k(:,k), f_Qn, f_Qp, nospA,&
-         nfQs,QmaxN,QminN,QmaxP,QminP,Which_uptake )
+      call func_T( T_k(k),Tadj )
+!     Nutrient dependent growth function
+      call func_Qs( Qn_k(:,k), Qp_k(:,k), f_Qn, f_Qp) 
 
 
 !Nutrients only taken up during the day:
@@ -544,7 +544,6 @@ write(6,*) "In cgem, initialized state vars"
 #ifdef DEBUG
 write(6,*) "In cgem, called T,Qx functions" 
 #endif
-
 
 ! ----------------------------------------------------------------------
       do isp = 1, nospA      

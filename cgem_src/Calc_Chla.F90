@@ -5,11 +5,13 @@
 
 MODULE Calc_Chla
 
+use phyto_growth
+
 CONTAINS
 
   FUNCTION Fixed_CChla(A_k,nz) RESULT(Chla_tot)
 
-    use cgem_vars, ONLY:nospA,km,Qc,CChla
+!    use cgem_vars, ONLY:nospA,km,Qc,CChla
     implicit none
 
     ! Input parameters
@@ -38,7 +40,7 @@ CONTAINS
 
   FUNCTION Chla_Cloern (A_k, Qn_k, Qp_k, N_k, P_k, Si_k, T_k, aRad, Chl_C, nz) RESULT(Chla_tot)
 
-    use cgem_vars, ONLY:nospA,km,Qc
+!    use cgem_vars, ONLY:nospA,km,Qc
     implicit none
 
     ! Input parameters
