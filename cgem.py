@@ -3,13 +3,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
 
-def cgem_plot1D(which_var):
+def cgem_plot1D(grid,which_var):
     print("Plotting CGEM variable",which_var)
     results = subprocess.run(['./CGEM.exe',which_var],stdout=subprocess.PIPE, text=True)
     ar = results.stdout.splitlines()
     result = np.array(list(map(str.strip,ar))).astype(float)
-    plt.plot(result,linestyle='dotted')
-    plt.show()
+    time = cgem_timearray(result,grid)
+    fig, ax = plt.subplots(figsize=(20, 5))
+    ax.plot(time,result)
     
 def cgem_getvar(which_var):
     print("Calculating CGEM variable",which_var)
