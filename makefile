@@ -20,10 +20,8 @@
 
 ### =============== End User Modifiable Section  =============== ####
 include moc_src/src_files
-include sdm_src/src_files
 cgemdir=cgem_src
 mocdir=moc_src
-sdmdir=sdm_src
 
 EXE = CGEM.exe
 
@@ -31,17 +29,18 @@ hostname := $(shell uname -n)
 
 ERR = $(shell which ifort >/dev/null; echo $$?)
 
-#ifeq ($(findstring login,$(hostname)),login)
+#NC = $(shell ncdump >/dev/null; echo $$?)
+
 ifeq "$(ERR)" "0"
 #Use intel on ncsu
   F90 = ifort
   F77 = ifort
   FC = ifort
-  INC = -I/usr/local/usrapps/ncdfutil/cmaq-libs/intel2018.4-ncdf4/netcdf/include
-  LIBS = -L/usr/local/usrapps/ncdfutil/cmaq-libs/intel2018.4-ncdf4/netcdf/lib -lnetcdff -lnetcdf
-  DFLAGS = -g -warn -debug all -g -check all -ftrapuv #-DDEBUG #-mcmodel=medium -shared-intel
-  CFLAGS = -DNCFILE
-  include cgem_src/src_nc
+  INC = -I.  #-I/usr/local/usrapps/ncdfutil/cmaq-libs/intel2018.4-ncdf4/netcdf/include
+#  !LIBS = -L/usr/local/usrapps/ncdfutil/cmaq-libs/intel2018.4-ncdf4/netcdf/lib -lnetcdff -lnetcdf
+  #DFLAGS = -g -warn -debug all -g -check all -ftrapuv #-DDEBUG #-mcmodel=medium -shared-intel
+#  !CFLAGS = -DNCFILE
+  include cgem_src/src_files
 else
   F90 = gfortran
   F77 = gfortran
@@ -62,12 +61,8 @@ cgem: ${MOC_OBJ} ${OBJ} ${SDM_OBJ}
 $(OBJ):%.o: $(cgemdir)/%.F90
 	$(F90) -c $(FFLAGS) $(CFLAGS) $(DFLAGS) $(INC) $<
 
-$(SDM_OBJ): %.o: $(sdmdir)/%.F90
-	$(F90) -c $(FFLAGS_SDM) $<
-
 $(MOC_OBJ):%.o: $(mocdir)/%.F90
 	$(F90) -c $(FFLAGS) $(DFLAGS)  $<
-
 
 clean:
 	rm -f *.o ${EXE} *.mod *genmod*

@@ -1230,7 +1230,11 @@ write(6,*) "In cgem, updated ALK"
         enddo   ! end of  "do k = 1, km" 
 
 
-if(ivar.ne.0) write(6,*) ff(1,ivar)
+if(ivar.lt.0) then
+  write(6,*) ff(1,:)
+else if(ivar.ne.0) then
+  write(6,*) ff(1,ivar)
+endif
 
 ! ----------------------------------------------------------------------
 

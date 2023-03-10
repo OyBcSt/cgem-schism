@@ -11,8 +11,8 @@ real x
 !read(999,*) Which_fluxes
 
 !read(999,*) Which_temperature
-if(Which_temperature.ne.1.and.Which_temperature.ne.2.and.Which_temperature.ne.3.and.Which_temperature.ne.4) then
-  write(6,*) "Which_temperature is outside of range 1-4"
+if(Which_temperature.ne.1.and.Which_temperature.ne.2.and.Which_temperature.ne.3) then
+  write(6,*) "Which_temperature is outside of range 1-3"
   stop 
 endif
 
@@ -23,15 +23,15 @@ if(Which_uptake.ne.1.and.Which_uptake.ne.2.and.Which_uptake.ne.3) then
 endif
 
 !read(999,*) Which_quota
-if(Which_quota.ne.1.and.Which_quota.ne.2.and.Which_quota.ne.3.and.Which_quota.ne.4) then
-  write(6,*) "Which_quota is outside of range 1-4"
+if(Which_quota.ne.1.and.Which_quota.ne.2.and.Which_quota.ne.3) then
+  write(6,*) "Which_quota is outside of range 1-3"
   stop
 endif
 
 
 !read(999,*) Which_irradiance 
-if(Which_irradiance.ne.1.and.Which_irradiance.ne.2.and.Which_irradiance.ne.3) then
-  write(6,*) "Which_irradiance is outside of range 1-3"
+if(Which_irradiance.ne.1.and.Which_irradiance.ne.2) then
+  write(6,*) "Which_irradiance is outside of range 1-2"
   stop
 endif
 
@@ -42,13 +42,13 @@ if(Which_chlaC.ne.1.and.Which_chlaC.ne.2) then
 endif
 
 !read(999,*) Which_photosynthesis 
-if(Which_photosynthesis.ne.1.and.Which_photosynthesis.ne.2.and.Which_photosynthesis.ne.3.and.Which_photosynthesis.ne.4) then
-  write(6,*) "Which_photosynthesis is outside of range 1-4"
+if(Which_photosynthesis.ne.1.and.Which_photosynthesis.ne.2.and.Which_photosynthesis.ne.3) then
+  write(6,*) "Which_photosynthesis is outside of range 1-3"
   stop
 endif
 
 if(Which_photosynthesis.eq.3.and.Which_growth.ne.3) then
-  write(6,*) "If Which_photosynthese=3 then Which_growth should = 3"
+  write(6,*) "If Which_photosynthesis=3 then Which_growth should = 3"
   stop
 endif
 

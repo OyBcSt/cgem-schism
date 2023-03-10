@@ -262,9 +262,6 @@ real KG_bot
 real, allocatable :: alphad(:) ! Initial slope of photosynthesis-irradiance curve / Vmax
 real, allocatable :: betad(:)  ! Photoinhibition constant / Vmax
 
-!Diatom array
-integer, allocatable :: is_diatom(:)
-
 !Initialize variables in cgem_init from cgem_read
   real, private :: stoich_x1A_init,stoich_y1A_init,stoich_x2A_init,stoich_y2A_init
   real, private :: stoich_x1Z_init,stoich_y1Z_init,stoich_x2Z_init,stoich_y2Z_init 
@@ -273,7 +270,6 @@ integer, allocatable :: is_diatom(:)
   real, private :: A_init,Qn_init,Qp_init,Z1_init,Z2_init,NO3_init,NH4_init,PO4_init,DIC_init,O2_init
   real, private :: OM1_A_init,OM2_A_init,OM1_Z_init,OM2_Z_init,OM1_R_init,OM2_R_init,CDOM_init
   real, private :: Si_init,OM1_BC_init,OM2_BC_init,ALK_init,Tr_init
-
 
   public  :: cgem_setup
   private :: cgem_read, cgem_allocate, cgem_init
@@ -615,9 +611,6 @@ if(ierr.ne.0) write(6,*) "error in allocating:alphad"
 allocate( betad(nospA),stat=ierr )  ! Photoinhibition constant / Vmax
 if(ierr.ne.0) write(6,*) "error in allocating:betad"
 
-!Diatom array
-allocate( is_diatom(nospA),stat=ierr )
-if(ierr.ne.0) write(6,*) "error in allocating:is_diatom"
 
 !Temperature parameters for growth rates
 allocate(Tref(nospA+nospZ),stat=ierr)                   !Tref(nospA+nospZ): Optimum temperature for growth(C)
@@ -690,14 +683,6 @@ do isp=1,nospA
    A_wt(isp) = A_wt(isp)/tot
 enddo
 
-!Diatom/non-Diatom array
-do isp=1,nospA
-   if(KSi(isp).le.tiny(x)) then
-      is_diatom(isp) = 0
-   else
-      is_diatom(isp) = 1
-   endif
-enddo
 
 !namelist /init/ A_init,Qn_init,Qp_init,Z1_init,Z2_init,NO3_init,NH4_init,PO4_init,DIC_init,O2_init,&
 ! OM1_A_init,OM2_A_init,OM1_Z_init,OM2_Z_init,OM1_R_init,OM2_R_init,CDOM_init,Si_init,OM1_BC_init,OM2_BC_init,ALK_init,Tr_init

@@ -1,7 +1,7 @@
 module phyto_growth
 
 use cgem, only: nospA,nospZ,km,umax,QminN,QmaxN,QminP,QmaxP,nfQs,   &
-  & respg,respb,alphad,betad,Tref,KTg1,KTg2,Ea,is_diatom,KQn,KQp,KSi,Qc, &
+  & respg,respb,alphad,betad,Tref,KTg1,KTg2,Ea,KQn,KQp,KSi,Qc, &
   & Which_growth,Which_photosynthesis,Which_quota,Which_temperature,     &
   & Which_uptake,CChla
 
@@ -136,9 +136,6 @@ subroutine func_E( E, min_S, f_E )
   real, intent(IN),  dimension(nospA) :: min_S ! Function of rate limiting nutrient
 ! -- Declare calculated variables being returned ---------------------
   real, intent(out),dimension(nospA)  :: f_E   ! Growth rate factor (dimensionless) 
-! -- Local variables -------------------------------------------------
-!???????GoMDOM
-  real, parameter :: alpha = 1.93e-16
 
   if (Which_photosynthesis.eq.1) then         !With photoinhibition 
     f_E(1:nospA) = ( 1.0 - exp(-alphad(1:nospA) * E) ) * exp(-betad(1:nospA)*E)
@@ -146,8 +143,6 @@ subroutine func_E( E, min_S, f_E )
     f_E(1:nospA) = ( 1.0 - exp(-alphad(1:nospA) * E) )
   else if (Which_photosynthesis.eq.3) then    !Nutrient dependent
     f_E(1:nospA) = ( 1.0 - exp(-alphad(1:nospA) * E / min_S) )
-  else if (Which_photosynthesis.eq.4) then    !GoMDOM
-    f_E(1:nospA) = tanh(alpha * E)
   else
     write(6,*) "Error in func_E"
       stop
@@ -206,7 +201,7 @@ end subroutine func_Qs
 subroutine func_S( Qn, Qp, N, P, Si, f_N, f_P, f_Si)
 !-- func_S is for a function of substrate 'S' --------------- 
 !  USE cgem_vars, only: nospA,Which_quota,QminN,QminP,QmaxN,QmaxP,&
-!      is_diatom,KQn,KQp,KSi
+!      KQn,KQp,KSi
       
 !--------------------------------------------------------------------------
 ! INPUT:  
@@ -255,54 +250,24 @@ subroutine func_S( Qn, Qp, N, P, Si, f_N, f_P, f_Si)
   KHPD = 0.51 !2.50E-06 * 3.2e4        ! KHPD: mean P half sat  (dia)
   KHSD = 1.13 !2.50E-05 * 3.6e4        ! KHSD: mean Si half sat (dia)
 
-!GoMDOM is 2.50E-05, ours is 1.13         ! KHSD: mean Si half sat (dia)
-!GoMDOM is kg/m3, ours is mmol/m3
-! Conversions:
-! Si kg/m3 * mmol/28mg * 1e6 mg/kg = 3.6e4 
-! N  kg/m3 * mmol/14mg * 1e6 mg/kg = 7.1e4
-! P  kg/m3 * mmol/31mg * 1e6 mg/kg = 3.2e4 
-! KHNG --> 1.8 
-! KHPG --> 0.08 
-! KHSD --> .9 
-! In CGEM, we have Kn=1.13, Kp=0.51, Ksi=1.13
- 
   if (Which_quota.eq.1) then !Droop(1968)
     f_N(:) = ( Qn(:) - QminN(:) ) / Qn(:)
-    f_P(:) = ( Qp(:) - QminP(:) ) / Qp(:)       
+    f_P(:) = ( Qp(:) - QminP(:) ) / Qp(:)
+    f_Si(:) = Si / ( Si + Ksi(:) ) !Monod        
   else if (Which_quota.eq.2) then !Nyholm(1978)
     f_N(:) = ( Qn(:) - QminN(:) ) / ( QmaxN(:) - QminN(:) )
     f_P(:) = ( Qp(:) - QminP(:) ) / ( QmaxP(:) - QminP(:) )
+    f_Si(:) = Si / ( Si + Ksi(:) ) !Monod 
   else if (Which_quota.eq.3) then !Flynn(2003)
     f_N(:) = ( 1. + KQn(:) ) * ( Qn(:) - QminN(:) ) /        &
      &           ( Qn(:) - QminN(:) + KQn(:)*( QmaxN(:) - QminN(:) ) )
     f_P(:) = ( 1. + KQp(:) ) * ( Qp(:) - QminP(:) ) /        &
      &           ( Qp(:) - QminP(:) + KQp(:)*( QmaxP(:) - QminP(:) ) )
-  else if (Which_quota.eq.4) then !GoMDOM
-    do isp=1,nospA
-    if(is_diatom(isp).eq.1) then !Diatoms
-      f_N(isp) = N / ( N + KHND(isp) ) !Monod
-      f_P(isp) = P / ( P + KHPD(isp) ) !Monod
-    else                    !Non-diatoms
-      f_N(isp) = N / ( N + KHNG(isp) ) !Monod
-      f_P(isp) = P / ( P + KHPG(isp) ) !Monod
-    endif
-    enddo
+    f_Si(:) = Si / ( Si + Ksi(:) ) !Monod 
   else
-    write(6,*) "Error in func_S"
+    write(6,*) "Error in func_S. Which_quota=",Which_quota
     stop
   endif
-
-  if (Which_quota.eq.4) then
-    do isp=1,nospA
-      if(is_diatom(isp).eq.1) then !Diatoms
-        f_Si(isp) = Si / ( Si + KHSD(isp) ) !Monod
-      else                    !Non-diatoms
-        f_Si(isp) = 9999.     !Greens have no Si
-      endif
-    enddo
-    else
-      f_Si(:) = Si / ( Si + Ksi(:) ) !Monod 
-    endif
 
 return
 end subroutine func_S  
@@ -321,7 +286,7 @@ subroutine func_T( T, Tadj )
 ! 
 ! REFERENCES:
 !
-! nospA,nospZ,is_diatom,Tref,KTg1,KTg2,Which_temperature,Ea
+! nospA,nospZ,Tref,KTg1,KTg2,Which_temperature,Ea
 !------------------------------------------------------------------------
 ! -- Declare input variables coming thru the interface ------------------
   real, intent(in) :: T    ! Temperature (deg C)
@@ -356,8 +321,6 @@ write(6,*) "func_T, nospA, Which_temperature",nospA,Which_temperature
     T_in_K  = T + 273.15 !Temp. in Kelvin
     Tref_in_K(:) = Tref(:) + 273.15 !Temp. in Kelvin 
     Tadj(:) = exp ( -(Ea(:)/k_b) * ( 1./T_in_K - 1./Tref_in_K(:) ) ) 
-  else if (Which_temperature.eq.4) then !GoMDOM temperature functions
-    call T_GoMDOM(T, Tadj, is_diatom, nospA, nospZ)
   else  
     write(6,*) "Error in func_T"
     stop

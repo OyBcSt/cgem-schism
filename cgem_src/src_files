@@ -15,14 +15,12 @@ OBJ  =  \
         DailyRad_init.o\
 	run_cgem.o\
         SDM.o\
-	T_GoMDOM.o\
 	Nitrification.o\
 	rnitrate.o\
 	reaction.o\
 	Q10_T.o\
 	MOD_UTILITIES.o\
 	calc_solar_zenith.o\
-	Light_GoMDOM.o\
 	Call_IOP_PAR.o\
         main.o
 

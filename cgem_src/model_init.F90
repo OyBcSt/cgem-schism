@@ -9,12 +9,12 @@ use OUTPUT_NETCDF_CGEM
 use OUTPUT
 #endif
 
+
 implicit none
 
 integer(8), intent (out) :: TC_8  !Integer seconds
 integer, intent (out) :: dT_dum, nsteps  !pass back dT
 character(100) :: BASE_NETCDF_OUTPUT_FILE_NAME
-!Allocates nea, km(nvrt), nospA/Z, ff
 
 !Initialize grid
 call grid_setup
@@ -34,5 +34,5 @@ BASE_NETCDF_OUTPUT_FILE_NAME = "cgemForSchism"
 call Init_Output_CGEM(BASE_NETCDF_OUTPUT_FILE_NAME)
 #endif
 
-
+return
 end subroutine model_init 

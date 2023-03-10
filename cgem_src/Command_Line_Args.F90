@@ -58,6 +58,8 @@
          ivar = iAlk
        case ("Tr")
          ivar = iTr
+       case ("all")
+         ivar = -9999
 
        case default
         write(6,*) "These are the only options, case sensitive:"

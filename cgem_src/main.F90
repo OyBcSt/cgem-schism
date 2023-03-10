@@ -11,6 +11,7 @@ integer ivar !Which variable to print
 write(6,*) "In main, before model_init"
 #endif
 
+
 !Initializes everything
 call model_init(TC_8,dT,nstep)
 
