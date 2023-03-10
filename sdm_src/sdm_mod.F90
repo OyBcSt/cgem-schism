@@ -1,8 +1,51 @@
 module coupleRate 
 
-  use SDM, only: NPOINTS, NEQ, nsed,sO2,sNO3,sNH4,sDIC,sOM1,sOM2,sALK,sALK,sDOC
+  use SDM, only: NPOINTS, NEQ, nsed,sO2,sNO3,sNH4,sDIC,sOM1,sOM2,sALK,sDOC
 
   implicit none
+
+  save
+
+      COMMON /ADVEC/ W00
+      COMMON /BIOT/ Db0
+      COMMON /CONC/ DO20,NO30,NH30,SO40,HS0,NH3I
+      COMMON /CONC2/ MNO0,MN20,FE30,FE20,FES0,TC0,ALK0,DOM0,DOMI
+      COMMON /CONSTANT2/ KpFES
+      COMMON /CONSTANT3/ k8,k10,k11,k12,k13,k14,k15,k23,k_23
+      COMMON /DEPTH/ XL,DH
+      COMMON /DESORB/ KANH4
+      COMMON /DIFF/ DO2,DNO3,DNH3,DMN2,DFE2,DSO4,DHS,DTC,DALK
+      COMMON /DISSOL/ a, PER_DIS
+      COMMON /FIRRG/ rIRRO2,rIRRTC,rIRRNO,rIRRNH,rIRRSO,rIRRALK,rIRRDOM
+      COMMON /FLUXCOMMON/ FG1,FG2
+      COMMON /GETY/ YY
+      COMMON /GRIDPOINT/ NEQ
+      COMMON /GULF/ gulfdo,day
+      COMMON /hydro/ aa, bb, gg, zz
+      COMMON /IRRIG/ ALPHA0,XIRRIG
+      COMMON /KINETICS/ KG1,KG2,KDOM,KO2,KNO3,KMNO,KFE3,KSO4
+      COMMON /MIX/ X1,X2
+      COMMON /pHes/ pH
+      COMMON /POROS/ P0,P00,BP
+      COMMON /RATES/ RATE
+      COMMON /SEDFLUX/ FLUXES
+      COMMON /SPECIES/ NS,NPOINTS
+      COMMON /SROOT/ ZROOT, WROOT
+      COMMON /STOIC/ SC1,SN1,SP1,SC2,SN2,SP2,SC3,SN3,SP3
+      COMMON /TEMPERATURE/ TEMP, SAL, PRESS,pH0
+      COMMON /TIMING/ T,TOUT,TOUT1,TOUT2,TOUT3,TOUT4,TOUT5,TOUT6
+
+
+      PARAMETER (MAXNEQ=27000)
+      PARAMETER (NSPECIES=17)
+      PARAMETER (NCOMPART=17)
+      PARAMETER (MXSTEP =30000)
+      PARAMETER (MU=NCOMPART,ML=MU)
+      PARAMETER (LRW=22+11*MAXNEQ+(3*ML+2*MU)*MAXNEQ)
+C     PARAMETER (LRW=22+9*MAXNEQ+2*MAXNEQ**2)
+      PARAMETER (LIW=30+MAXNEQ)
+
+
 
   DATA ZERO/0.0D+00/,ONE/1.0D+00/,TWO/2.0D+00/,THREE/3.0D+00/
   DATA FOUR/4.0D+00/,FIVE/5.0D+00/,EIGHT/8.0D+00/
@@ -10,6 +53,7 @@ module coupleRate
   DATA FIFTY/3.0D+02/,SEVENTY/7.0D+1/
   DATA HUN/1.0D+02/,FIVEHUN/5.0D+02/,THOU/1.0D+03/
   DATA YEAR/3.156D+07/
+
 
 contains
 
@@ -19,15 +63,6 @@ contains
 !-----------------------------------------------------------------------
        SUBROUTINE CASES(value1,value2,Y,ppH,ISTATE,IFLAG,Ainp)
 
-!From my code
-!      CALL CASES(val1(IC), val2(IC), YY_ij, ppH_ij, ISTATE, IFLAG, Ainp)0
-!      REAL(kind=8) :: val1(400), val2(400)
-!      INTEGER :: n_its, nss, np, IC
-!      REAL(kind=8), INTENT(INOUT) :: YY_ij(NEQ)
-!      REAL(kind=8), INTENT(INOUT) :: ppH_ij(NPOINTS)
-!      INTEGER :: IFLAG, ISTATE
-!      REAL(kind=8) :: Ainp(100)
-!
       INTEGER, INTENT(IN) :: ISTATE,IFLAG
       REAL(KIND=8), DIMENSION(400), INTENT(IN) :: value1, value2
       REAL(KIND=8), INTENT(INOUT) :: Y(NEQ)
@@ -35,25 +70,9 @@ contains
 
       EXTERNAL FEX2,JEX
       INTEGER IWORK,LRW,LIW,MU,ML,ITASK,ISTATE,IOPT,ITOL,IPAR
-      PARAMETER (MAXNEQ=27000)
-      PARAMETER (NSPECIES=17)
-      PARAMETER (NCOMPART=17)
-      PARAMETER (MXSTEP =30000)
-      PARAMETER (MU=NCOMPART,ML=MU)
-      PARAMETER (LRW=22+11*MAXNEQ+(3*ML+2*MU)*MAXNEQ)
-C     PARAMETER (LRW=22+9*MAXNEQ+2*MAXNEQ**2)
-      PARAMETER (LIW=30+MAXNEQ)
       DIMENSION Y(MAXNEQ),RWORK(LRW),IWORK(LIW),RPAR(MAXNEQ)
       DIMENSION YY(MAXNEQ),pH(2000),ppH(2000)
       DIMENSION Ainp(100)
-      COMMON /SPECIES/ NS,NPOINTS
-      COMMON /SROOT/ ZROOT, WROOT
-      COMMON /TEMPERATURE/ TEMP, SAL, PRESS,pH0
-      COMMON /GETY/ YY
-      COMMON /pHes/ pH
-      COMMON /GRIDPOINT/ NEQ
-!L3      COMMON /GETPH/ ppH
-
 
       NS = NSPECIES
       ITOL = 1
@@ -110,6 +129,7 @@ C     PARAMETER (LRW=22+9*MAXNEQ+2*MAXNEQ**2)
 !      write(*,*) 'NEQ', NEQ
 !      write(*,*) "Value1,Value2",value1,value2
 
+!L3 Here is Y
       CALL DVODE(FEX2,NEQ,Y,T,TOUT,ITOL,RTOL,ATOL,ITASK, &
          ISTATE,IOPT,RWORK,LRW,IWORK,LIW,JEX,MF,RPAR,IPAR)
 
@@ -134,7 +154,6 @@ C     PARAMETER (LRW=22+9*MAXNEQ+2*MAXNEQ**2)
       SUBROUTINE FEX2(NEQ,T,Y,YDOT,RPAR,IPAR)
 
       REAL*8 NO30,NH30,IRRIG,NH3I,MnO0,Mn20,O20,KANH4, KADS_p 
-      PARAMETER (MAXNEQ=27000)
       DIMENSION Y(NEQ),YDOT(NEQ),RATE(MAXNEQ)
       DIMENSION POROVEC(1500),rIRRO2(1500),rIRRTC(1500)
       DIMENSION rIRRNO(1500),rIRRNH(1500),rIRRSO(1500)
@@ -143,31 +162,6 @@ C     PARAMETER (LRW=22+9*MAXNEQ+2*MAXNEQ**2)
       DIMENSION RPAR(*)
       DIMENSION Rc(25)
       DIMENSION pH(2000),dy(2),FLUXES(10)
-
-      COMMON /SPECIES/ NS,NPOINTS
-      COMMON /DEPTH/ XL,DH
-      COMMON /TEMPERATURE/ TEMP, SAL, PRESS, pH0
-      COMMON /MIX/ X1,X2
-      COMMON /BIOT/ Db0
-      COMMON /ADVEC/ W00
-      COMMON /CONC/ DO20,NO30,NH30,SO40,HS0,NH3I
-      COMMON /DESORB/ KANH4
-      COMMON /CONC2/ MNO0,MN20,FE30,FE20,FES0,TC0,ALK0,DOM0,DOMI
-      COMMON /DIFF/ DO2,DNO3,DNH3,DMN2,DFE2,DSO4,DHS,DTC,DALK
-      COMMON /FLUXCOMMON/   FG1,FG2  !Changed name of common block, Cconflicted with module
-      COMMON /SEDFLUX/ FLUXES
-      COMMON /DISSOL/ a, PER_DIS
-      COMMON /IRRIG/ ALPHAA,XIRRIG
-!L3 Add to common block
-      COMMON /FIRRG/ rIRRO2,rIRRTC,rIRRNO,rIRRNH,rIRRSO,rIRRALK,rIRRDOM
-
-      COMMON /RATES/ RATE
-      COMMON /pHes/ pH
-
-
-!L3 see if this fixes rank thing
-      REAL*8 TESTALK
-
 
       X = ZERO
       NPM1 = NPOINTS - 1
@@ -179,7 +173,6 @@ C     PARAMETER (LRW=22+9*MAXNEQ+2*MAXNEQ**2)
       iday  = int(tt)
 
       O20 = DO20
-
 
 !     write(*,'(A4,2X,f12.2)') 'O2O',O20  ! check HS concentration
 ! Apply Q10 relationship to the irrigation parameter
@@ -1570,11 +1563,6 @@ C
       REAL*8 TESTALK
       DIMENSION R(6),R1(6),R2(6),R3(6)
       DIMENSION spc(9),Rc(25)
-      COMMON /CONSTANT2/ KpFES
-      COMMON /CONSTANT3/ k8,k10,k11,k12,k13,k14,k15,k23,k_23
-      COMMON /KINETICS/ KG1,KG2,KDOM,KO2,KNO3,KMNO,KFE3,KSO4
-      COMMON /STOIC/ SC1,SN1,SP1,SC2,SN2,SP2,SC3,SN3,SP3
-      COMMON /TEMPERATURE/ TEMP, SAL, PRESS,pH0
 C
 
 
@@ -1908,7 +1896,6 @@ C
       DOUBLE PRECISION FUNCTION RNITRATE_SDM(O20)
       REAL*8 KG1,KG2,KDOM, KPO2
       REAL*8 KO2, KNO3, KMNO,  KFE3,  KSO4
-      COMMON /KINETICS/ KG1,KG2,KDOM,KO2,KNO3,KMNO,KFE3,KSO4
 ! JCL, note that KO2 from hypox_input is modified, I removed /HUN
        KPO2= KO2
        PO2=O20
@@ -1928,7 +1915,6 @@ C
       REAL*8 KG1,KG2,KDOM
       REAL*8 KPO2,KPNO3
       REAL*8 KO2, KNO3, KMNO,  KFE3,  KSO4
-      COMMON /KINETICS/ KG1,KG2,KDOM,KO2,KNO3,KMNO,KFE3,KSO4
 ! JCL, note that KO2 and KNO3 from hypox_input are modified here, removed/FIFTY
       KPO2= KO2
       KPNO3= KNO3
@@ -1953,7 +1939,6 @@ C
       REAL*8 KG1,KG2,KDOM
       REAL*8 KO2, KNO3, KMNO,  KFE3,  KSO4
       REAL*8 KPO2,KPNO3,KPMNO
-      COMMON /KINETICS/ KG1,KG2,KDOM,KO2,KNO3,KMNO,KFE3,KSO4
 ! JCL, note that KO2,KNO3, KMNO from hypox_input are modified here, removed /HUN
       KPO2= KO2
       KPNO3= KNO3
@@ -1982,7 +1967,6 @@ C
       REAL*8 KG1,KG2,KDOM,MNO
       REAL*8 KPO2,KPNO3,KPMNO,KPFE3, NO30
       REAL*8 KO2, KNO3, KMNO, KFE3, KSO4
-      COMMON /KINETICS/ KG1,KG2,KDOM,KO2,KNO3,KMNO,KFE3,KSO4
 ! JCL, note that KO2,KNO3,KMNO, KFE3 from hypox_input are modified here, removed /THIRTY
       KPO2= KO2
       KPNO3= KNO3
@@ -2015,7 +1999,6 @@ C
       DOUBLE PRECISION FUNCTION rMandy(HS)
       REAL*8 KG1,KG2,KDOM,KO2,KNO3,KMNO,KFE3,KSO4
       REAL*8 KPSO4
-      COMMON /KINETICS/ KG1,KG2,KDOM,KO2,KNO3,KMNO,KFE3,KSO4
 ! JCL, note that KS04 is modified here, removed /HUN
        KPSO4= KSO4
        PHS=HS
@@ -2044,10 +2027,6 @@ C
 C
       SUBROUTINE SED(X,P,DPDX,U,W)
 
-
-      COMMON /POROS/ P0,P00,BP
-      COMMON /ADVEC/ W00
-C
       IF(BP.EQ.ZERO.OR.(P0-P00).EQ.ZERO) THEN
            P = P0
            DPDX = ZERO
@@ -2092,8 +2071,6 @@ C
 !   DB	Contains the expressions for the depth-dependent
 !		mixing coefficient
         DOUBLE PRECISION FUNCTION DB(X)
-        COMMON /MIX/ X1,X2
-        COMMON / BIOT/ Db0
 
       IF(X.LE.X1) DB = DB0
       IF(X.GT.X1.AND.X.LT.X2) DB = DB0*(X2-X)/(X2-X1)
@@ -2106,8 +2083,6 @@ C
 !   DDB	Contains the depth derivatives of DB(X)
 !
       DOUBLE PRECISION FUNCTION DDB(X)
-      COMMON /MIX/ X1,X2
-        COMMON /BIOT/ Db0
 
       IF(X.LE.X1) DDB = ZERO
       IF(X.GT.X1.AND.X.LT.X2) DDB = -DB0/(X2-X1)
@@ -2121,7 +2096,6 @@ C
 !		approximation for the advective term (see Boudreau,
 !		1986, Amer. J. Sci., v. 286, p.192)
       DOUBLE PRECISION FUNCTION SIG(X,W)
-      COMMON /DEPTH/ XL,DH
 
       D = DB(X)
       IF(D.NE.ZERO) THEN
@@ -2135,7 +2109,6 @@ C
       END
 
 
-
 !   FILL_Y Parses output vector for each species
 !
 !***********************************************************************
@@ -2144,12 +2117,10 @@ C
      *                  FE3,FE2,SO4,HS,FES,TC,ALK,DOM,Os,Ob)
 
 
-      PARAMETER (MAXNEQ=27000)
       DIMENSION Y(NEQ+2)
       DIMENSION G1(*),G2(*),O2(*),rNO3(*),rNH4(*),rMN2(*)
       DIMENSION SO4(*),HS(*),FE3(*),FE2(*),FES(*),TC(*),ALK(*)
       DIMENSION DOM(*), Os(*), Ob(*)
-      COMMON /SPECIES/ NS,NPOINTS
 C
       NPM1 = NPOINTS - 1
 C
@@ -2213,8 +2184,6 @@ C
       DIMENSION G1(*),G2(*),O2(*),rNO3(*),rNH4(*),rMN2(*)
       DIMENSION FE2(*),SO4(*),HS(*),FES(*),TC(*),ALK(*),DOM(*)
       DIMENSION Os(*),Ob(*)
-      COMMON /SROOT/ ZROOT, WROOT
-      COMMON /DEPTH/ XL,DH
 C
 C
       NROOT  =  INT(ZROOT/DH)
@@ -2423,7 +2392,6 @@ C
 
 
 C
-      PARAMETER (MAXNEQ=27000)
       DIMENSION RPAR(MAXNEQ)
 C
       REAL*8 KG1,KG2,KDOM,NO30,NH30,KANH4
@@ -2435,36 +2403,6 @@ C
       DIMENSION Ainp(100)
       DIMENSION DF(24),rk(9),ppH(2000),YY(MAXNEQ)
       DIMENSION day(1100),gulfdo(1100)
-      COMMON /SPECIES/ NS,NPOINTS
-      COMMON /GRIDPOINT/ NEQ
-      COMMON /ADVEC/ W00
-      COMMON /DEPTH/ XL,DH
-      COMMON /TIMING/ T,TOUT,TOUT1,TOUT2,TOUT3,TOUT4,TOUT5,TOUT6
-      COMMON /MIX/ X1,X2
-      COMMON /BIOT/ Db0
-      COMMON /CONC/ DO20,NO30,NH30,SO40,HS0,NH3I
-      COMMON /CONC2/ MNO0,MN20,FE30,FE20,FES0,TC0,ALK0,DOM0,DOMI
-      COMMON /GULF/ gulfdo,day
-      COMMON /DIFF/ DO2,DNO3,DNH3,DMN2,DFE2,DSO4,DHS,DTC,DALK
-      COMMON /FLUXCOMMON/ FG1,FG2
-      COMMON /POROS/ P0,P00,BP
-      COMMON /SROOT/ ZROOT, WROOT
-      COMMON /IRRIG/ ALPHA0,XIRRIG
-      COMMON /KINETICS/ KG1,KG2,KDOM,KO2,KNO3,KMNO,KFE3,KSO4
-      COMMON /CONSTANT2/ KpFES
-      COMMON /CONSTANT3/ k8,k10,k11,k12,k13,k14,k15,k23,k_23
-      COMMON /DISSOL/ a, PER_DIS
-      COMMON /STOIC/ SC1,SN1,SP1,SC2,SN2,SP2,SC3,SN3,SP3
-      COMMON /TEMPERATURE/ TEMP, SAL, PRESS,pH0
-      COMMON /GETY/ YY
-!L3      COMMON /GETPH/ ppH
-      COMMON /DESORB/ KANH4
-      COMMON /hydro/ aa, bb, gg, zz
-
-!       COMMON /TIMES/ T0,TL
-!       COMMON /DIN/ rKn, NH3I, NO3I
-!       COMMON /DEPDAY/ Nday, dep_mud
-
 
 C
       NSPECIES = NS
@@ -2657,4 +2595,277 @@ C
       RETURN
       END
 
-end module coupleRate 
+
+!
+!  MATLAB Produces output for the the MATLAB program "fourout"
+!
+!     ------------------------------------------------------------
+!     FORMAT FOR MATLAB  FILE
+!     ------------------------------------------------------------
+      SUBROUTINE MATLAB(NEQ,A,IC)
+      REAL*8 KG1,KG2,KDOM
+      REAL*8 KO2, KNO3, KMNO,  KFE3,  KSO4
+      INTEGER, intent(in) :: IC
+      character*8 fmt
+      INTEGER i,j
+
+      CHARACTER (LEN = 2) :: CHR
+      CHARACTER (LEN = 4) :: filenameSmall
+      CHARACTER (LEN = 10) :: filename
+      CHARACTER (LEN = 3) :: CHR2
+      CHARACTER (LEN = 5) :: filenameSmall2
+      CHARACTER (LEN = 11) :: filename2
+
+      DIMENSION A(NEQ)
+      DIMENSION RATE(MAXNEQ)
+      DIMENSION FLUXES(9)
+
+
+!  TAKE OUT THE VERY SMALL VALUES FROM THE MODEL OUTPUT
+!
+      DO j=1, NEQ
+           IF (ABS(A(j)) .LE. 1.0E-9) THEN
+               A(j)=0.0
+           ENDIF
+      ENDDO
+      DO i=1,NEQ
+            IF (ABS(RATE(i)) .LE. 1.0E-9) THEN
+               RATE(i) = 0.0
+            ENDIF
+      ENDDO
+      NEM1=NEQ
+
+!   Convert "IC" FROM INTEGER TO character and add it TO FILE name for
+!   profile
+
+       IF (IC .LT. 10) then
+         fmt = '(I1)'
+         write(CHR,fmt) IC
+         filenameSmall= 'Pz0'//CHR       ! concatanate w/ file name
+         filename= filenameSmall//'.dat'           ! continuous w/ .dat;has some blanks??
+         OPEN (12,FILE=filename,STATUS='UNKNOWN',FORM='FORMATTED')
+            WRITE(12,"(E12.4)") (A(i),i=1,NEM1)
+         CLOSE(12)
+
+         filenameSmall= 'Rz0'//CHR       ! concatanate w/ file name
+         filename= filenameSmall//'.dat'           ! continuous w/ .dat;has some blanks??
+         OPEN (12,FILE=filename,STATUS='UNKNOWN',FORM='FORMATTED')
+            WRITE(12,"(E12.4)") (RATE(i),i=1,NEM1)
+         CLOSE(12)
+
+         filenameSmall= 'LB0'//CHR       ! concatanate w/ file name
+         filename= filenameSmall//'.dat'           ! continuous w/ .dat;has some blanks??
+
+
+      ElSE IF (IC .LT. 100) THEN
+         fmt = '(I2)'
+         write(CHR,fmt) IC
+         filenameSmall= 'Pz'//CHR       ! concatanate w/ file name
+         filename= filenameSmall//'.dat'           ! continuous w/ .dat;has some blanks??
+         OPEN (12,FILE=filename,STATUS='UNKNOWN',FORM='FORMATTED')
+            WRITE(12,"(E12.4)") (A(i),i=1,NEM1)
+         CLOSE(12)
+
+         filenameSmall= 'Rz'//CHR       ! concatanate w/ file name
+         filename= filenameSmall//'.dat'           ! continuous w/ .dat;has some blanks??
+         OPEN (12,FILE=filename,STATUS='UNKNOWN',FORM='FORMATTED')
+            WRITE(12,"(E12.4)") (RATE(i),i=1,NEM1)
+         CLOSE(12)
+
+        filenameSmall= 'LB'//CHR       ! concatanate w/ file name
+        filename= filenameSmall//'.dat'           ! continuous w/ .dat;has some blanks??
+
+
+      ELSE
+         fmt = '(I3)'
+         write(CHR2,fmt) IC
+         filenameSmall2= 'Pz'//CHR2       ! concatanate w/ file name
+         filename2= filenameSmall2//'.dat'           ! continuous w/ .dat;has some blanks??
+         OPEN (12,FILE=filename2,STATUS='UNKNOWN',FORM='FORMATTED')
+            WRITE(12,"(E12.4)") (A(i),i=1,NEM1)
+         CLOSE(12)
+
+         filenameSmall2= 'Rz'//CHR2       ! concatanate w/ file name
+         filename2= filenameSmall2//'.dat'           ! continuous w/ .dat;has some blanks??
+         OPEN (12,FILE=filename2,STATUS='UNKNOWN',FORM='FORMATTED')
+            WRITE(12,"(E12.4)") (RATE(i),i=1,NEM1)
+         CLOSE(12)
+
+        filenameSmall2= 'LB'//CHR2       ! concatanate w/ file name
+        filename2= filenameSmall2//'.dat'           ! continuous w/ .dat;has some blanks??
+
+      ENDIF
+
+C  Now do the same for the rlab FILE
+       sedO2  = FLUXES(1)
+       sedNO3 = FLUXES(2)
+       sedNH4 = FLUXES(3)
+       sedSO4 = FLUXES(4)
+       sedDIC = FLUXES(5)
+       sedOM1 = FLUXES(6)
+       sedOM2 = FLUXES(7)
+
+C
+       SPECIEN= FLOAT(NS)
+      IF (IC .LT. 100) then
+       OPEN (12,FILE=filename,STATUS='UNKNOWN',FORM='FORMATTED')
+      ELSE
+       OPEN (12,FILE=filename2,STATUS='UNKNOWN',FORM='FORMATTED')
+      ENDIF
+         WRITE(12,"(E16.6)") W00      !1
+         WRITE(12,"(E16.6)") SPECIEN  !2
+         WRITE(12,"(E16.6)") DH       !3
+         WRITE(12,"(E16.6)") sedOM1   !4
+         WRITE(12,"(E16.6)") sedOM2   !5
+         WRITE(12,"(E16.6)") sedO2    !6
+         WRITE(12,"(E16.6)") sedNO3   !7
+         WRITE(12,"(E16.6)") sedNH4   !8
+         WRITE(12,"(E16.6)") sedSO4   !9
+         WRITE(12,"(E16.6)") sedDIC   !10
+         WRITE(12,"(E16.6)") tir_O2   !11
+         WRITE(12,"(E16.6)") tir_TC   !12
+         WRITE(12,"(E16.6)") tir_NO   !13
+         WRITE(12,"(E16.6)") tir_HN   !14
+         WRITE(12,"(E16.6)") tir_SO   !15
+
+       CLOSE(12)
+      RETURN
+      END
+
+
+!-----------
+      SUBROUTINE model(Ainp,dT,YY_ij,ppH_ij,sedflux_ij)
+
+      INTEGER,INTENT(IN) :: dT
+      REAL, INTENT(OUT) :: sedflux_ij(nsed)
+      REAL*8 MN2(1550),NH4(1500),NO3(1550)
+      REAL*8, INTENT(INOUT) :: YY_ij
+      DIMENSION YY_ij(MAXNEQ),val1(400),val2(400)
+      DIMENSION G1(1550),G2(1550),O2(1550),Os(1500),Ob(1500)
+      DIMENSION FE2(1550),FE3(1550),SO4(1550),HS(1550)
+      DIMENSION FES(1550),TC(1550),ALK(1550),DOM(1550)
+      DIMENSION rootG1(400),rootG2(400),rootO2(400),rootNO3(400)
+      DIMENSION rootNH4(400),rootMN2(400),rootFE2(400),rootSO4(400)
+      DIMENSION rootHS(400),rootFES(400),rootTC(400),rootALK(400)
+      DIMENSION rootDOM(400),rootOs(400),rootOb(400)
+      DIMENSION Ainp(100)
+      DIMENSION FLUXES(10),sedO2(400),sedNO3(400),sedNH4(400)
+      DIMENSION sedMno(400),sedMN2(400),sedFe3(400),sedFe2(400)
+      DIMENSION sedSO4(400),sedHS(400),sedFeS(400),sedDIC(400)
+      DIMENSION sedALK(400),sedDOC(400),sedOM1(400),sedOM2(400)
+      DIMENSION rIRRO2(1500), rIRRTC(1500)
+      DIMENSION rIRRNO(1500), rIRRNH(1500), rIRRSO(1500)
+!L3 Adding irrigation terms
+      DIMENSION rIRRALK(1500),rIRRDOM(1500)
+      DIMENSION pycoO2(400)
+
+      INTEGER n_its
+      REAL*8 step_in
+C
+C --------    Notify user of input mode
+C
+
+!      WRITE(*,600)
+! 600  FORMAT(' ','DATA IS ENTERED WITH FILE hypox_inp.csv ')
+C
+C --------     Change some parameters to input variables
+C
+
+      nss=17
+      np =1500
+
+C
+C --------     Set IFLAG for reading plume.dat
+C
+
+      IFLAG=1  ! set to null Y vector
+
+C
+C --------     Run a series of CASES with ALtered inputs
+C
+
+!L3 Y starts off as read in from normoxia.dat, and is updated in CASES
+!and FILL_Y
+
+      temp   = ZERO
+C
+      n_its = 1   !Ainp(mrow+1)
+      step_in = real(dT,8)/86400.D0 !From seconds to days !Ainp(mrow+2)
+
+      step = step_in/365.D0      !From days to years
+
+      DO IC=1,n_its
+
+!         write(6,*) "Step:years,days,secs",IC*step,IC*step_in,IC*dT
+         val1(IC)= temp
+         val2(IC)= temp + step
+         temp    = val2(IC)
+
+      CALL CASES(val1(IC),val2(IC),YY_ij,ppH_ij,ISTATE,IFLAG,Ainp)
+
+
+      CALL FILL_Y(NEQ,np,nss,YY_ij,G1,G2,O2,NO3,NH4,MN2,
+     *                  FE3,FE2,SO4,HS,FES,TC,ALK,DOM,Os,Ob)
+
+
+!  SUM up the irrigation O2 flux (*1000)is puts it in
+!  the same units as the sed flux.  The matlab routine
+!  divides by 1000 TO get the needed units. ALL this is
+!  done so we can USE the same fill_y and Rootint routines as
+!  is used for the concentration stuff.
+
+
+       tir_O2=SUM(rIRRO2)
+       tir_NO=SUM(rIRRNO)
+       tir_HN=SUM(rIRRNH)
+       tir_SO=SUM(rIRRSO)
+       tir_TC=SUM(rIRRTC)
+       tir_ALK=SUM(rIRRALK)
+       tir_DOM=SUM(rIRRDOM)
+
+
+       sedO2(IC) = FLUXES(1) + tir_O2
+       sedNO3(IC)= FLUXES(2) + tir_NO
+       sedNH4(IC)= FLUXES(3) + tir_HN
+       sedSO4(IC)= FLUXES(4) + tir_SO
+       sedDIC(IC)= FLUXES(5) + tir_TC
+       sedOM1(IC)= FLUXES(6)
+       sedOM2(IC)= FLUXES(7)
+       pycoO2(IC)= FLUXES(8)
+       sedALK(IC)= FLUXES(9) + tir_ALK
+       sedDOC(IC)= FLUXES(10) + tir_DOM
+
+!       write(*,'(A6,2X,f12.2)') 'DOflux',sedO2(IC)/365*10   ! check Surface O2 concentrations
+!
+! ------- Output the sediment geochemical profiles to compare w/ data
+!
+       !Iflagout = mod(IC,10) ! Output full profile every 50 years
+       !IF ((Iflagout == 0) .AND. (IC >= 20)) CALL MATLAB(NEQ,Y,IC)
+!       CALL MATLAB(NEQ,Y,IC)
+
+!       WRITE(*,260) ISTATE
+
+       ENDDO  !End loop over 'ndays'
+
+
+!      CALL OUTFLUX(sedO2,sedNO3,sedNH4,sedSO4,sedDIC,sedDOC,
+!     * sedOM1,sedOM2, pycoO2,n_its)
+      sedflux_ij = 0.
+      IC=n_its
+      sedflux_ij(sO2) = sedO2(IC)
+      sedflux_ij(sNO3) = sedNO3(IC)
+      sedflux_ij(sNH4) = sedNH4(IC)
+      sedflux_ij(sDIC) = sedDIC(IC)
+      sedflux_ij(sOM1) = sedOM1(IC)
+      sedflux_ij(sOM2) = sedOM2(IC)
+      sedflux_ij(sALK) = sedALK(IC)
+      sedflux_ij(sDOC) = sedDOC(IC)
+      sedflux_ij = sedflux_ij/365.
+!      write(6,*) "sedO2(IC)years,days",IC,sO2,sedO2(IC),sedflux_ij(sO2)
+!      write(6,*) "NO3,NH4,DIC",sedflux_ij(sNO3),sedflux_ij(sNH4),sedflux_ij(sDIC)
+       write(6,*) sedflux_ij
+
+ 260  FORMAT(///' POS # IS A GOOD THING, NEG # IS SUSPECT! ISTATE =',I3)
+      END
+
+end module sdm_mod
