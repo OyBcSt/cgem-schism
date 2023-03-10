@@ -40,7 +40,7 @@ def cgem_tend(grid):
 
 def cgem_timearray(var,grid):
     Tstart = cgem_tstart(grid)
-    dtout = grid.get('time').get('dT')
+    dtout = grid.get('time').get('dt')
     dt = timedelta(seconds=dtout)
     res = []
     for x in range (0, len(var)):
