@@ -8,7 +8,8 @@ cgem-schism
 
 
 ## Run CGEM with different temperatures
-Shows how to change an input with f90nml command.  (not finished at all...beware.)
+Shows how to change an input with f90nml command, then rerun the code to check results.
+
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/lisalenorelowe/cgem-schism.git/HEAD?labpath=cgem_testing.ipynb)
 
 
