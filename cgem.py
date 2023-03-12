@@ -57,7 +57,7 @@ def cgem_plotks(grid,which_var):
     result = np.array(list(map(str.strip,ar))).astype(float)
     time = cgem_timearray(result,grid)
     km = grid.get('hydro').get('km')
-    fig, ax = plt.subplots(figsize=(15, 3))
+    fig, ax = plt.subplots(figsize=(30, 5))
     for i in range (1,km+1):
         x = str(i)
         results = subprocess.run(['./CGEM.exe',which_var,x],stdout=subprocess.PIPE, text=True)
@@ -65,4 +65,4 @@ def cgem_plotks(grid,which_var):
         result = np.array(list(map(str.strip,ar))).astype(float)
         label = which_var + " k=" + x
         ax.plot(time,result,label=label)
-    ax.legend()
+    ax.legend(loc='upper left')
