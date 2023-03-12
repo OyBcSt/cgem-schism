@@ -9,8 +9,9 @@ def cgem_plot1D(grid,which_var):
     ar = results.stdout.splitlines()
     result = np.array(list(map(str.strip,ar))).astype(float)
     time = cgem_timearray(result,grid)
-    fig, ax = plt.subplots(figsize=(20, 5))
-    ax.plot(time,result)
+    fig, ax = plt.subplots(figsize=(15, 3))
+    ax.plot(time,result,label=which_var)
+    ax.legend(loc='upper left')
     
 def cgem_getvar(which_var):
     print("Calculating CGEM variable",which_var)
