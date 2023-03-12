@@ -7,10 +7,11 @@ implicit none
 
 contains
 
-      Subroutine Command_Line_Args(ivar)
+      Subroutine Command_Line_Args(ivar,ivark)
 
-      integer, intent(out) :: ivar
+      integer, intent(out) :: ivar,ivark
       character(10) :: print_var
+      character(1) :: print_k
       integer c_count
 
 ! ./CGEM Which_code InputFile InitializationFile OutputFileBase 
@@ -19,7 +20,15 @@ contains
          c_count = command_argument_count()
 
        if (c_count.gt.0) then
-       call get_command_argument(1,print_var)  !User selects what to print
+        call get_command_argument(1,print_var)  !User selects what to print
+        ivark = 1 
+        if (c_count.gt.1) then
+          call get_command_argument(2,print_k)  !User selects what to print 
+          READ (print_k, *) ivark
+          !write(6,*) "km,print_k,ivark",km,print_k,ivark
+          if(ivark.gt.km) ivark = km 
+        endif 
+
        select case (print_var)
        case ("A")
          ivar = iA(1)
@@ -69,8 +78,6 @@ contains
          ivar = iAlk
        case ("Tr")
          ivar = iTr
-       case ("all")
-         ivar = -9999
 
        case default
         write(6,*) "These are the only options, case sensitive:"

@@ -1,5 +1,5 @@
 !======================================================================     
-    Subroutine cgem_step( TC_8, istep, ivar )
+    Subroutine cgem_step( TC_8, istep, ivar, ivark )
 
 !======================================================================
      use grid, only: lat,T,S
@@ -17,7 +17,7 @@
 !---------------------------------------------------------------------
     integer, intent(in)  :: TC_8         ! Model time (seconds from beginning of Jan 1, 2002)
     integer, intent(in)  :: istep     ! Current time step
-    integer, intent(in)  :: ivar   ! which variable to print out...just k=1
+    integer, intent(in)  :: ivar, ivark ! print variable at k layer 
 !---------------------------------------------------------------------------------------
 ! Local Variables
 !-----------------------------------------------------
@@ -1127,10 +1127,9 @@ write(6,*) "In cgem, updated ALK"
         enddo   ! end of  "do k = 1, km" 
 
 
-if(ivar.lt.0) then
-  write(6,*) ff(1,:)
-else if(ivar.ne.0) then
-  write(6,*) ff(1,ivar)
+if(ivar.ne.0) then
+  !write(6,*) "ivar,ivark=",ivar,ivark
+  write(6,*) ff(ivark,ivar)
 endif
 
 ! ----------------------------------------------------------------------

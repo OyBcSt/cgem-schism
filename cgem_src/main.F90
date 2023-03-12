@@ -7,7 +7,7 @@ implicit none
 
 integer         :: TC_8  ! Current time in seconds since Model_dim::iYrS.
 integer         :: istep ! Current time step
-integer         :: ivar  !Which variable to print
+integer         :: ivar,ivark  !Which variable to print
 
 !Initialize grid
 call grid_setup
@@ -23,14 +23,14 @@ call DailyRad_Init(TC_8)
 call Check_InputFile
 
 !Need to define vars before figuring out which to print
-call Command_Line_Args(ivar)
+call Command_Line_Args(ivar,ivark)
 
 #ifdef DEBUG
 write(6,*) "In main, before cgem_step, TC_8:",TC_8
 #endif
 
 do istep=1,nstep
-call cgem_step(TC_8,istep,ivar)
+call cgem_step(TC_8,istep,ivar,ivark)
 TC_8 = TC_8 + dT
 call grid_update(TC_8)
 enddo
