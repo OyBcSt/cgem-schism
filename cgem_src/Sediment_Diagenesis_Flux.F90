@@ -3,7 +3,6 @@
                                         & s_z2A, s_x1Z, s_y1Z, s_z1Z, s_x2Z, &
                                         & s_y2Z, s_z2Z, YY_ij, ppH_ij )
 
-      USE Model_dim
       use cgem, only: nf
       USE SDM, only: A, NPOINTS, NEQ, nsed
       USE Model_Diagenesis, ONLY: model

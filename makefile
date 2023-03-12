@@ -43,14 +43,15 @@ else
   FC = gfortran
   INC =
   LIBS =
-  DFLAGS = -Wall -Wextra -pedantic -fimplicit-none -fbacktrace -DDEBUG -DDEBUG_PAR #-D_CGEM -DRDEBUG -DDEBUG 
+  DMFLAGS = -fimplicit-none -fbacktrace
+  DFLAGS = -Wall -Wextra -pedantic -fimplicit-none -fbacktrace #-DDEBUG -DDEBUG_PAR #-D_CGEM -DRDEBUG -DDEBUG 
   CFLAGS = 
   include cgem_src/src_files
 endif
 
 
 cgem: ${MOC_OBJ} ${OBJ} ${SDM_OBJ} 
-	$(F90) -o $(EXE) $(FFLAGS) $(DFLAGS) $(INC) $(MOC_OBJ) $(OBJ) $(SDM_OBJ) $(LIBS)
+	$(F90) -o $(EXE) $(FFLAGS) $(INC) $(MOC_OBJ) $(OBJ) $(SDM_OBJ) $(LIBS)
 #
 ## Pattern rules
 #
@@ -58,7 +59,7 @@ $(OBJ):%.o: $(cgemdir)/%.F90
 	$(F90) -c $(FFLAGS) $(CFLAGS) $(DFLAGS) $(INC) $<
 
 $(MOC_OBJ):%.o: $(mocdir)/%.F90
-	$(F90) -c $(FFLAGS) $(DFLAGS)  $<
+	$(F90) -c $(FFLAGS) $(DMFLAGS)  $<
 
 clean:
 	rm -f *.o ${EXE} *.mod *genmod*

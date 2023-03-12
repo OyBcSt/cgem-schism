@@ -5,7 +5,7 @@ use cgem_misc
 
 implicit none
 
-integer(kind=8) :: TC_8  ! Current time in seconds since Model_dim::iYrS.
+integer         :: TC_8  ! Current time in seconds since Model_dim::iYrS.
 integer         :: istep ! Current time step
 integer         :: ivar  !Which variable to print
 
@@ -32,7 +32,7 @@ write(6,*) "In main, before cgem_step, TC_8:",TC_8
 do istep=1,nstep
 call cgem_step(TC_8,istep,ivar)
 TC_8 = TC_8 + dT
-call grid_update(TC_8,istep)
+call grid_update(TC_8)
 enddo
 
 #ifdef DEBUG

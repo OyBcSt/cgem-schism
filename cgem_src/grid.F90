@@ -14,12 +14,12 @@ integer :: nea = 1
 integer :: km
 
 !Simulation parameters
-integer(8) :: START_SECONDS,END_SECONDS
+integer :: START_SECONDS,END_SECONDS, nstep
 
 !--Run Specifics---------------
 integer iYrS,iMonS,iDayS,iHrS,iMinS,iSecS
 integer iYrE,iMonE,iDayE,iHrE,iMinE,iSecE
-integer dT,nstep
+integer dT
 
 !Constants
 real, parameter :: SDay = 86400.0  ! # of sec in 24 hr day
@@ -190,11 +190,10 @@ write(6,*) "End grid_init"
 end subroutine grid_init
 
 
-subroutine grid_update(TC_8,istep)
+subroutine grid_update(TC_8)
 !Update outside vars - rad, T, S, wind
 
-integer(8), intent (in) :: TC_8  !Integer seconds
-integer, intent(in) :: istep
+integer, intent(in) :: TC_8  !Integer seconds
 
 !Update Rad - solar radiation
 call getSolar( iYrS, TC_8, lon, lat, Rad)
@@ -221,7 +220,7 @@ end subroutine grid_update
       real   , intent(in)  :: lon  ! longitude (deg E) at center of cell 
       real   , intent(in)  :: lat  ! latitude (deg N) at center of cell 
       integer, intent(in)  :: iYrS
-      integer(kind=8), intent(in) :: TC_8 ! Current time in seconds since Model_dim::iYrS
+      integer, intent(in) :: TC_8 ! Current time in seconds since Model_dim::iYrS
       real   , intent(out) :: Rad ! Solar Radiation
       integer  :: iYr      ! Year that Time_8 corresponds to
       integer  :: iMon     ! Month that Time_8 corresponds to

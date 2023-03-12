@@ -1,184 +1,75 @@
-!----------------------------------------------------------------------
-      FUNCTION calc_solar_zenith(lat, lon, rhr, julianDay )    &      
-      &        RESULT(sunangle) 
-      
-!-----------------------------------------------------------------------
-!     Original MATLAB code Written by: Brad Penta/NRL
-!
-!     Translated into FORTRAN and 
-!     Revised by                     : Barry Herchenroder/EMVL, April 2010
-!                                                               June 2011
-!------------------------------------------------------------------------
+module cgem_light
 
-!-----------------------------------------------------------------------
-!  Calculate the solar zenith angle (radians) given the latitude 
-!  (lat, degrees) longitude (lon, degrees) of a point in the Gulf of 
-!  Mexico (GOM) as well as the Julian day of the year (julianDay),
-!  the hour in that day (ihr-integer)
-!------------------------------------------------------------------------
+use grid, only: km,d,dz,d_sfc,iYrS,lat,lon
+use cgem, only: which_irradiance,Kw,Kchla,Kspm,Kcdom,aRadSum,       &
+ &              aw490,astar490,astarOMA,astarOMZ,astarOMR,astarOMBC
 
-  !--------------------------------------------------------------------------
-  ! Definitions
-  !
-  ! sunangle     -> angle of the sun in radians, computed from latitude,
-  !                 longitude, Julian day, and time--This is the zenith 
-  !
-  ! Compute the sun zenith angle in radians for a given Julian day (julianDay),
-  ! GMT (ihr;in hours), latitude (lat), and longitude (lon).
-  !
-  ! Sun angle of pi/2 radians (90 deg) = sun at or below horizon i.e. dark
-  ! Sun angle of 0 radians (0 deg)     = sun directly overhead.
-!------------------------------------------------------------------------------
+use date_time
 
-  IMPLICIT NONE 
-   
-!-------------------------------------------------
-! Declare variables in the interface
-!------------------------------------------------- 
-  REAL   , INTENT(IN)    :: lat          ! Latitude (deg); lat > 0 means
-                                         !                 North of Equator
-  REAL   , INTENT(IN)    :: lon          ! Longitude (deg E, 0 <= lon < 360); 
-  REAL   , INTENT(IN)    :: rhr          ! decimal Hour of Julian Day  
-  INTEGER, INTENT(IN)    :: julianDay    ! Julian Day GMT
-  
-!-------------------------------------------------
-! Local variables
-!------------------------------------------------- 
-  REAL   :: costmp
-  REAL   :: sdec
-  REAL   :: rad
-  REAL   :: rlat 
-  REAL   :: rsdec   
-  REAL   :: rthez 
-  REAL   :: sunangle  ! returned as RESULT 
-  REAL   :: tc  
-  REAL   :: thez
-  REAL   :: xha
+implicit none
 
+contains
 
-#ifdef DEBUG
-write(6,*) "In calc_solar_zenith"
-#endif
-
-
-
-!---------------------------------------------------
-!  Compute solar declination angle
-  rad = 180.0/ (4.0 * atan(1.0))             ! rad = radian to degrees 
-                                             !       conversion factor
-  thez = 360.0*((FLOAT(julianDay-1)) )/365. ! thez = theta zero orbital 
-                                                 !        position (degs)
-  rthez = thez/rad;  ! in radians
-
-!  sdec = solar declination angle in degrees
-   sdec = 0.396372                                                    &
-   &    -22.91327 *cos(rthez)     + 4.02543*sin(rthez)                & 
-   &    - 0.387205*cos(2.0*rthez) + 0.051967*sin(2.0*rthez)           &
-   &    - 0.154527*cos(3.0*rthez) + 0.084798*sin(3.0*rthez)           
-   rsdec = sdec/rad; ! in radians
-
-#ifdef DEBUG
-!write(6,*) "In calc_solar_zenith,rsdec,rad=",rsdec,rad
-#endif
-
-!  Time correction (tc) for solar hour angle
-   tc = 0.004297                                                      &
-   &  + 0.107029*cos(rthez)     - 1.837877*sin(rthez)                 &
-   &  - 0.837378*cos(2.0*rthez) - 2.342824*sin(2.0*rthez)
-
-!  xha = solar hour angle in degrees
-   xha = (rhr-12.0 )*15.0 + lon + tc    
-     
-   IF (xha > 180.0) THEN
-      xha = xha - 360.0
-   ENDIF 
-   IF (xha > -180.0) THEN
-      xha = xha + 360.0
-   ENDIF 
-
-!  Sun zenith angle sunangle. 
-! Cosine(sunangle) == costmp
-! rsdec            == sun declination angle
-! xha              == local hour angle  
-
-   rlat = lat/rad
-   costmp = sin(rlat)*sin(rsdec)                                      & 
-   &      + cos(rlat)*cos(rsdec) * cos(xha/rad)
-
-! The next block if is for failsafe purposes
-   IF (abs(costmp) > 1.0) THEN
-       IF (costmp > 0.0) THEN
-           costmp = 1.0
-       ELSE
-           costmp = -1.0
-       ENDIF 
-   ENDIF 
-
-   sunangle = acos(costmp)  ! solar zenith angle in radians. Note that
-                            ! 2.0*atan(1.0)= Pi/2 radians= 90 deg
-
-   IF (sunangle > (2.0*atan(1.0))) THEN
-       sunangle = 2.0*atan(1.0);
-   ENDIF 
-
-#ifdef DEBUG
-write(6,*) "End calc_solar_zenith"
-#endif
-
- 
-   RETURN  
-   END FUNCTION calc_solar_zenith   
-   Subroutine Call_IOP_PAR(                                            &
-		 & PARsurf     , sun_zenith,                           &
-                 & CDOM_k      , totChl    ,                           &
-                 & OM1_A       , OM1_Z     ,                           &
-                 & OM1_R       , OM1_BC    ,                           &
-                 & depth, dz, nz, d_sfc,                                   &
-	         & PARdepth  )   
+   subroutine Call_IOP_PAR(                           & 
+                 & TC_8, PARsurf, totChl, CDOM_k,     &
+                 & OM1A, OM1Z, OM1R, OM1BC,           &
+                 & depth, dz, nz, d_sfc,              &
+                 & PARdepth, PARbot)
 
 !-----------------------------------------------------------------------
 ! Code is based on Brad Penta's code
 !---------------------------------------------------------------------
-  USE cgem, only: km,aw490,astar490,astarOMA,astarOMZ,astarOMR,astarOMBC 
-
-  IMPLICIT NONE 
-
-!                 & d(nz), dz, nz, d_sfc,                          &
-
-!----------------------------------------------------------------------------
+  integer, intent(in)    :: TC_8         ! Model time in seconds from iYrS
+  integer, intent(in)    :: nz           ! Number of layers
   real   , intent(in)    :: PARsurf      ! Irradiance just below sea surface
-  real   , intent(in)    :: sun_zenith   ! Angle of the sun
-  real   , intent(in)    :: totChl(km)  ! total Chl-a (mg/m3)
-  real   , intent(in)    :: CDOM_k(km)  ! CDOM (ppb) 
-  real   , intent(in)    :: OM1_A(km)   ! Concentration of particulate
-  real   , intent(in)    :: OM1_Z(km)   ! Concentration of particulate
-                                         ! fecal pellets (g/m3)
-  real   , intent(in)    :: OM1_R(km)   ! Concentration of particulate
-                                         ! river generated SPM (g/m3)
-  real   , intent(in)    :: OM1_BC(km)  ! Concentration of particulate
-                                         ! initial and boundary condition generated SPM (g/m3)
-  real   , intent(in)    :: depth        ! depth at bottom of cell k from surface
-  real   , intent(in)    :: dz(km)      ! depth of cell
-  real   , intent(in)    :: d_sfc(km)   ! depth at center of cell k from surface
-  integer, intent(in)    :: nz          ! Total number of layers in water column
-  real  , intent(out)    :: PARdepth(km)    ! PARdepth(k) is Par, the
-                                             ! visible irradiance
-                                             ! at the middle of layer k.
-                                             ! (quanta/cm**2/sec)
-
+  real   , intent(in), dimension(km)    :: totChl(km)   ! total Chl-a (mg/m3)
+  real   , intent(in), dimension(km)    :: CDOM_k(km)   ! CDOM (ppb) 
+  real   , intent(in), dimension(km)    :: OM1A(km)     ! Concentration of particulate
+  real   , intent(in), dimension(km)    :: OM1Z(km)     ! Concentration of particulate
+                                                        !  fecal pellets (g/m3)
+  real   , intent(in), dimension(km)    :: OM1R(km)     ! Concentration of particulate
+                                                        !  river generated SPM (g/m3)
+  real   , intent(in), dimension(km)    :: OM1BC(km)    ! Concentration of particulate initial
+                                                        !  and boundary condition SPM (g/m3)
+  real   , intent(in)                   :: depth        ! depth at bottom of cell k from surface
+  real   , intent(in), dimension(km)    :: dz(km)       ! depth of cell
+  real   , intent(in), dimension(km)    :: d_sfc(km)    ! depth at center of cell k from surface
+  real  , intent(out), dimension(km)    :: PARdepth(km) ! PAR, visible irradiance at the middle 
+                                                        !  of layer k (quanta/cm**2/sec)
+  real, intent(out)      :: PARbot                      ! PAR at sea bottom (quanta/cm**2/sec)
 !----------------------------------------------------------------
 ! Calculate absorption (490 nm) components: seawater, chl, SPM from rivers, CDOM,
 ! detritus (dead cells), fecal pellets ...
-      real Chla_tot(km), CDOM_tot(km), OM1A_tot(km), OM1Z_tot(km), OM1R_tot(km), OM1BC_tot(km), CDOM(km)
-      real Chla_mass(km), CDOM_mass(km), OM1A_mass(km), OM1Z_mass(km), OM1R_mass(km), OM1BC_mass(km)
-      real a490_mid, aSw_mid, aChl490_mid, aCDOM490_mid, bbChl490_mid, bb490_mid
-!      real a490_bot, aSw_bot, aChl490_bot, aCDOM490_bot, bbChl490_bot, bb490_bot
-      real aOM1A490_mid, aOM1Z490_mid, aOM1R490_mid, aOM1BC490_mid
-!      real aOM1A490_bot, aOM1Z490_bot, aOM1R490_bot, aOM1BC490_bot
-      real cell_depth  !, bd_km1
-      integer :: k  
+  real, dimension(km) :: Chla_tot, CDOM_tot, OM1A_tot, OM1Z_tot, OM1R_tot, OM1BC_tot, CDOM
+  real, dimension(km) :: Chla_mass, CDOM_mass, OM1A_mass, OM1Z_mass, OM1R_mass, OM1BC_mass
+  real :: sun_zenith ! Angle of the sun
+  real :: calc_solar_zenith !function
+  real a490_mid, aSw_mid, aChl490_mid, aCDOM490_mid, bbChl490_mid, bb490_mid
+  real a490_bot, aSw_bot, aChl490_bot, aCDOM490_bot, bbChl490_bot, bb490_bot
+  real aOM1A490_mid, aOM1Z490_mid, aOM1R490_mid, aOM1BC490_mid
+  real aOM1A490_bot, aOM1Z490_bot, aOM1R490_bot, aOM1BC490_bot
+  real cell_depth  !, bd_km1
+  integer :: k  
+! Time variables  
+  real, parameter :: OneD60     = 1.0/60.0  ! Convert 1/min to 1/sec
+  real            :: HrTC          ! Decimal hour of day
+  integer         :: iYrTC, iMonTC, iDayTC, iHrTC, iMinTC, iSecTC !Time variables
+  integer         :: julianDay     ! Holds Julian Day
 
-#ifdef DEBUG
+ ! First calculate the Julian(GMT) model year (iYrTC), month (iMonTC), 
+ ! day (iDayTC), hour (iHrTC), minute (iMinTC), and second (iSecTC) 
+ ! associated with the midpoint of the present timestep istep TC_8
+      CALL DATE_TIMESTAMP( iYrS, TC_8, &
+                           iYrTC, iMonTC, iDayTC, iHrTC, iMinTC, iSecTC )
+ ! Calc HrTC, the decimal hour of day
+       HrTC = real(iHrTC,4) + OneD60*iMinTC + OneD60*iSecTC
+ ! Now calculate the Julian Day associated with model time TC_8
+      julianDay = JDAY_IN_YEAR(iYrTC, iMonTC, iDayTC)
+ ! Now calculate sun_zenith, the solar beam zenith angle in radians
+ ! for a given GMT Julian day, hour, longitude and latitude 
+     sun_zenith = calc_solar_zenith(lat, lon,  HrTC, julianDay )
+
+#ifdef DEBUG_PAR
 write(6,*) "Begin Call_IOP_Par"
 write(6,*) "PARsurf,sun_zenith,totChl",PARsurf,sun_zenith,totChl
 write(6,*) "nz,km",nz,km
@@ -220,10 +111,10 @@ write(6,*) "Call_IOP_Par: initialized CDOM"
       cell_depth = dz(k)
       Chla_mass(k) = totChl(k)*cell_depth
       CDOM_mass(k) = CDOM(k)*cell_depth
-      OM1A_mass(k) = OM1_A(k)*cell_depth
-      OM1Z_mass(k) = OM1_Z(k)*cell_depth
-      OM1R_mass(k) = OM1_R(k)*cell_depth
-      OM1BC_mass(k) = OM1_BC(k)*cell_depth
+      OM1A_mass(k) = OM1A(k)*cell_depth
+      OM1Z_mass(k) = OM1Z(k)*cell_depth
+      OM1R_mass(k) = OM1R(k)*cell_depth
+      OM1BC_mass(k) = OM1BC(k)*cell_depth
    enddo
 
 
@@ -291,20 +182,20 @@ write(6,*) "Just called IOP_Paratt, PARdepth=:",k,PARdepth(k)
    enddo
 
 ! Calculate PAR at sea bottom
-!      aSw_bot = aw490  !Sea water absorption at bottom of cell
-!      aChl490_bot = astar490 * (Chla_tot(nz)+0.5*Chla_mass(nz)) / depth !Chla absorption at bottom
-!      aCDOM490_bot = CDOM_tot(nz)+(0.5*CDOM_mass(nz)) / depth !CDOM absorption at bottom
-!      aOM1A490_bot = astarOMA * (OM1A_tot(nz)+0.5*OM1A_mass(nz)) / depth    !A absorption at bottom
-!      aOM1Z490_bot = astarOMZ * (OM1Z_tot(nz)+0.5*OM1Z_mass(nz)) / depth !FP absorption at bottom
-!      aOM1R490_bot = astarOMR * (OM1R_tot(nz)+0.5*OM1R_mass(nz)) / depth !SPM absorption at bottom
-!      aOM1BC490_bot = astarOMbc * (OM1BC_tot(nz)+0.5*OM1BC_mass(nz)) / depth !INIT/BC absorption at bottom
-!      a490_bot = aSw_bot + aChl490_bot + aCDOM490_bot + aOM1A490_bot + aOM1Z490_bot + aOM1R490_bot + aOM1BC490_bot
-!      bbChl490_bot = 0.015 * (0.3*(((Chla_tot(nz)+0.5*Chla_mass(nz)) / depth)**0.62)*(550./490.))
+      aSw_bot = aw490  !Sea water absorption at bottom of cell
+      aChl490_bot = astar490 * (Chla_tot(nz)+0.5*Chla_mass(nz)) / depth !Chla absorption at bottom
+      aCDOM490_bot = CDOM_tot(nz)+(0.5*CDOM_mass(nz)) / depth !CDOM absorption at bottom
+      aOM1A490_bot = astarOMA * (OM1A_tot(nz)+0.5*OM1A_mass(nz)) / depth    !A absorption at bottom
+      aOM1Z490_bot = astarOMZ * (OM1Z_tot(nz)+0.5*OM1Z_mass(nz)) / depth !FP absorption at bottom
+      aOM1R490_bot = astarOMR * (OM1R_tot(nz)+0.5*OM1R_mass(nz)) / depth !SPM absorption at bottom
+      aOM1BC490_bot = astarOMbc * (OM1BC_tot(nz)+0.5*OM1BC_mass(nz)) / depth !INIT/BC absorption at bottom
+      a490_bot = aSw_bot + aChl490_bot + aCDOM490_bot + aOM1A490_bot + aOM1Z490_bot + aOM1R490_bot + aOM1BC490_bot
+      bbChl490_bot = 0.015 * (0.3*(((Chla_tot(nz)+0.5*Chla_mass(nz)) / depth)**0.62)*(550./490.))
 !!Chla backscatter at bottom
-!      bb490_bot = bbChl490_bot !Only Chla backscatters for now
-!      call IOP_PARattenuation(a490_bot, bb490_bot, PARsurf, sun_zenith, d_sfc(nz), PARbot)
+      bb490_bot = bbChl490_bot !Only Chla backscatters for now
+      call IOP_PARattenuation(a490_bot, bb490_bot, PARsurf, sun_zenith, d_sfc(nz), PARbot)
 
-   END Subroutine Call_IOP_PAR
+   END subroutine Call_IOP_PAR
 !----------------------------------------------------------------------
 !*****************************************************************************************
       subroutine IOP_PARattenuation(a490, bb490, PARsurf, sun_zenith, d_sfc, PARdepth)
@@ -362,15 +253,6 @@ write(6,*) "Just called IOP_Paratt, PARdepth=:",k,PARdepth(k)
       return
       end
 !*****************************************************************************************
-module cgem_light
-
-use grid, only: km,d,dz,d_sfc,iYrS,lat,lon
-use cgem, only: which_irradiance,Kw,Kchla,Kspm,Kcdom,aRadSum
-use date_time
-
-implicit none
-
-contains
 
 subroutine calc_PARdepth( TC_8,PARSurf,S_k,Chla_k,CDOM_k,OM1A_in,OM1Z_in,      &
  &                         OM1R_in,OM1BC_in,PARdepth_k,PARbot,aRadSum_k )
@@ -379,7 +261,7 @@ subroutine calc_PARdepth( TC_8,PARSurf,S_k,Chla_k,CDOM_k,OM1A_in,OM1Z_in,      &
 ! Interface variables
 !---------------------------------------------------------------------
     !Inputs
-    integer(kind=8), intent(in)      :: TC_8              ! Model time (seconds from iYrS)
+    integer, intent(in)              :: TC_8              ! Model time (seconds from iYrS)
     real, dimension(km), intent(in)  :: S_k               ! Salinity (psu)
     real, dimension(km), intent(in)  :: Chla_k            ! Total amount of Chl-a in all the
                                                           !  phytoplankton species (mg/m3) per cell
@@ -397,28 +279,13 @@ subroutine calc_PARdepth( TC_8,PARSurf,S_k,Chla_k,CDOM_k,OM1A_in,OM1Z_in,      &
     real, dimension(km)  :: OM1A_k, OM1Z_k    !  
     real, dimension(km)  :: OM1SPM_k, OM1BC_k   ! POC in g/m3
 
-    integer        ::  k, isp, isz ! Loop indicies, isp/isz is for phytoplankton/zooplankton species
-    integer        ::  Is_Day            ! Switch for day/night for phytoplankton nutrient uptake only, Is_Day=0 means night
+    integer        ::  k    ! Loop index
 !------------------------------------ 
-! Time variables  
-    real, parameter :: one_d_365  = 1.0/365.0 ! Convert 1/yr to 1/day
-    real, parameter :: OneD60     = 1.0/60.0  ! Convert 1/min to 1/sec
-    real            :: HrTC          ! Decimal hour of day
-    integer         :: iYrTC, iMonTC, iDayTC, iHrTC, iMinTC, iSecTC !Time variables
-    integer         :: julianDay     ! Holds Julian Day
-!-----------------------------------------------------------------------
 ! Variables needed for light routine and calc_Agrow
-    real    :: SunZenithAtm       ! Solar beam zenith angle
-    real    :: calc_solar_zenith  ! Function, calculates solar beam zenith angle
     real    :: Katt               ! Attenuation coefficient for Irradiance model 2 
     real    :: tmpexp             ! Intermediate calculation
     real    :: PARbotkm1          ! Irradiance at bottom of layer k-1 (quanta/cm2/s)
     real    :: PARtopk            ! Irradiance at top of layer k (quanta/cm2/s)
-    real, parameter :: RADCONV = 1./6.0221413*1.e-19 ! Convert quanta/cm2/s to mol/m2/s:
-                                               !  = quanta/cm2/s * 1 mol/Avogadro# * 10,000cm2/m2
-                                               !  = (1/6.022e23) * 1.0e4 = (1./6.022)e-23 * 1.0e4
-                                               !  = (1./6.0221413)*1.e-19
-                                       !  phytoplankton species (mg/m3) per cell
     real, parameter :: C_cf  = 12.0E-3    ! C conversion factor (mmol-C/m3 to g-C/m3) 
 !-----------------------------------------------------------------------
 #ifdef DEBUG_PAR
@@ -434,9 +301,6 @@ write(6,*) "Begin calc_light:calc_PARdepth, TC_8",TC_8
  !---------------------------------------------------------
       do k = 1, km
 
-#ifdef DEBUG_PAR
-write(6,*) "init loop, km",k
-#endif
          !-------------------------------------------------
          ! -- Convert units for light model 
          !    C_cf == conversion factor (mmol-C/m3 to g-C/m3) 
@@ -471,23 +335,6 @@ write(6,*) "init loop, km",k
 write(6,*) "In cgem_light:calc_PARdepth, calculate date_time is next, iYrS=",iYrS
 #endif
 
- ! First calculate the Julian(GMT) model year (iYrTC), month (iMonTC), 
- ! day (iDayTC), hour (iHrTC), minute (iMinTC), and second (iSecTC) 
- ! associated with the midpoint of the present timestep istep TC_8
-
-      CALL DATE_TIMESTAMP( iYrS, TC_8, &
-                           iYrTC, iMonTC, iDayTC, iHrTC, iMinTC, iSecTC )
-
- ! Calc HrTC, the decimal hour of day
-       HrTC = real(iHrTC,4) + OneD60*iMinTC + OneD60*iSecTC
-
- ! Now calculate the Julian Day associated with model time TC_8
-      julianDay = JDAY_IN_YEAR(iYrTC, iMonTC, iDayTC)
-
- ! Now calculate SunZenithAtm, the solar beam zenith angle in radians
- ! for a given GMT Julian day, hour, longitude and latitude 
-     SunZenithAtm = calc_solar_zenith(lat, lon,  HrTC, julianDay )
-
 !----------------------------------------------------------------------------
 ! Execute the desired underwater light model to calculate the 1-D radiation
 ! arrays PARdepth_k, Esed and PAR_percent_k radiation arrays for
@@ -514,7 +361,7 @@ write(6,*) "In cgem_light:calc_PARdepth, calculate date_time is next, iYrS=",iYr
 #endif
 
                 call Call_IOP_PAR(                    &
-                 & PARsurf, Chla_k, CDOM_k,           &
+                 & TC_8, PARsurf, Chla_k, CDOM_k,     &
                  & OM1A_k, OM1Z_k, OM1SPM_k, OM1BC_k, &
                  & d(km), dz, km, d_sfc,              &
                  & PARdepth_k, PARbot)
@@ -568,7 +415,6 @@ write(6,*) "In cgem_light:calc_PARdepth, Finished Underwater Light Model"
 write(6,*) "Running total of current day's irradiance:"
 write(6,*) "aRadSum_k=",aRadSum_k
 #endif
-
 
    return
    end subroutine calc_PARdepth  

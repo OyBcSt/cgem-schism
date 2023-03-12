@@ -4,16 +4,14 @@
 
 OBJ  =  \
 	date_time.o\
+	calc_solar_zenith.o\
         grid.o\
 	cgem.o\
         cgem_growth.o\
         cgem_misc.o\
 	cgem_utils.o\
         cgem_light.o\
+	DailyRad_init.o\
         cgem_step.o\
-	SDM.o\
-	Sediment_Diagenesis_Flux.o\
-	Sediment_Diagenesis_Routines.o\
-	Model_Diagenesis.o\
         main.o
 
