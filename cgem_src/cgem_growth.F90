@@ -1,4 +1,4 @@
-module phyto_growth
+module cgem_growth
 
 use cgem, only: nospA,nospZ,km,umax,QminN,QmaxN,QminP,QmaxP,nfQs,   &
   & respg,respb,alphad,betad,Tref,KTg1,KTg2,Ea,KQn,KQp,KSi,Qc, &
@@ -407,4 +407,4 @@ function Chla_Cloern (A_k, Qn_k, Qp_k, N_k, P_k, Si_k, T_k, aRad, Chl_C) RESULT(
 return
 end function Chla_Cloern
 
-end module phyto_growth
+end module cgem_growth
