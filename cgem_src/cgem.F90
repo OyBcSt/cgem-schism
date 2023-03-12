@@ -723,9 +723,9 @@ enddo
 !namelist /init/ A_init,Qn_init,Qp_init,Z1_init,Z2_init,NO3_init,NH4_init,PO4_init,DIC_init,O2_init,&
 ! OM1_A_init,OM2_A_init,OM1_Z_init,OM2_Z_init,OM1_R_init,OM2_R_init,CDOM_init,Si_init,OM1_BC_init,OM2_BC_init,ALK_init,Tr_init
 !Initialize ff for testing
-ff(:,iA(1:3)) = A_init !6.e7      !A
-ff(:,iQn(1:3)) = Qn_init !0.30649887E-8           !Qn
-ff(:,iQp(1:3)) = Qp_init !0.19438481E-9           !Qp
+ff(:,iA(1)) = A_init !6.e7      !A
+ff(:,iQn(1)) = Qn_init !0.30649887E-8           !Qn
+ff(:,iQp(1)) = Qp_init !0.19438481E-9           !Qp
 ff(:,iZ(1)) = Z1_init !150.0508                !Z1 
 ff(:,iZ(2)) = Z2_init !1505.0508               !Z2
 ff(:,iNO3) = NO3_init !5.              !NO3 
