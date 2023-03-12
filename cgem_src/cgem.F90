@@ -9,6 +9,10 @@ implicit none
 
 save
 
+!number of species
+integer :: nospA
+integer :: nospZ
+
 !misc
 real :: eps
 
@@ -47,8 +51,6 @@ integer, parameter :: i_Si      = 9 !Silica (SA, SRP) Fluxes
        REAL :: CBODW
        REAL,ALLOCATABLE :: pH(:)
 
-!External subroutines
-external           :: DailyRad_init 
 
 !---------------------------------------------------------      
 !-A; Phytoplankton number density (cells/m3);
@@ -170,7 +172,7 @@ real, allocatable :: KTg1(:)
 real, allocatable :: KTg2(:)
 real, allocatable :: Tref(:)
 real, allocatable :: Ea(:)
-real, allocatable :: N(:)
+!real, allocatable :: N(:)
 !--Optics-----------------------
 real Kw
 real Kcdom
@@ -278,12 +280,50 @@ contains
 
 subroutine cgem_setup
 
+  call cgem_dim  !Read nospA and nospZ
   call cgem_allocate
   call cgem_read
   call cgem_init
 
 return
 end subroutine cgem_setup
+
+
+subroutine cgem_dim
+
+  integer           :: istat,iunit
+  character(len=1000) :: line
+  !http://degenerateconic.com/namelist-error-checking.html
+  namelist /nosp/ nospA,nospZ
+
+#ifdef DEBUG
+write(6,*) "Begin cgem_dim"
+#endif
+
+open(action='read',file='cgem.nml',iostat=istat,newunit=iunit)
+
+!namelist /switches/
+read(nml=nosp,iostat=istat,unit=iunit)
+if (istat /= 0) then
+ backspace(iunit)
+ read(iunit,fmt='(A)') line
+ write(6,'(A)') &
+        'Invalid line in namelist nosp: '//trim(line)
+ stop
+endif
+
+close(iunit)
+
+if(nospZ.ne.1.and.nospZ.ne.2) then
+!write(6,*) "Z's Please, are 1 or 2 for now.  You chose:",nospZ
+!write(6,*) "We're going to use nosp2=2 and keep going."
+nospZ=2
+endif
+
+return
+end subroutine cgem_dim
+
+
 
 subroutine cgem_read
 
@@ -296,7 +336,7 @@ subroutine cgem_read
   namelist /temperature/ Tref,KTg1,KTg2,Ea
   namelist /phytoplankton/ umax,CChla,alpha,beta,respg,respb,QminN,QminP,QmaxN,QmaxP,Kn,Kp,Ksi,KQn,&
      KQp,nfQs,vmaxN,vmaxP,vmaxSi,aN,volcell,Qc,Athresh,sinkA,mA,A_wt
-  namelist /zooplankton/ Zeffic,Zslop,Zvolcell,ZQc,ZQn,ZQp,ZKa,Zrespg,Zrespb,Zumax,Zm
+  namelist /zooplankton/ ediblevector,Zeffic,Zslop,Zvolcell,ZQc,ZQn,ZQp,ZKa,Zrespg,Zrespb,Zumax,Zm
   namelist /OM/ KG1,KG2,KG1_R,KG2_R,KG1_BC,KG2_BC,KNH4,nitmax,KO2,KstarO2,KNO3,pCO2,&
      stoich_x1R,stoich_y1R,stoich_x2R,stoich_y2R,stoich_x1BC,stoich_y1BC,stoich_x2BC,stoich_y2BC,&
      sinkOM1_A,sinkOM2_A,sinkOM1_Z,sinkOM2_Z,sinkOM1_R,sinkOM2_R,sinkOM1_BC,sinkOM2_BC,KGcdom,CF_SPM,KG_bot
@@ -527,13 +567,10 @@ write(6,*) "Begin cgem_allocate"
 !---Phytoplankton 
 allocate( ediblevector(nospZ,nospA),stat=ierr )
 if(ierr.ne.0) write(6,*) "error in allocating:ediblevector"
-
 allocate( umax(nospA),stat=ierr  )
 if(ierr.ne.0) write(6,*) "error in allocating:umax"
-
 allocate( CChla(nospA),stat=ierr  )
 if(ierr.ne.0) write(6,*) "error in allocating:CChla"
-
 allocate( alpha(nospA),stat=ierr )
 if(ierr.ne.0) write(6,*) "error in allocating:alpha"
 allocate( beta(nospA),stat=ierr )
@@ -656,13 +693,12 @@ end subroutine cgem_allocate
 subroutine cgem_init
 
 integer :: isp
-real tot,x
+real tot
 
 #ifdef DEBUG
 write(6,*) "Begin cgem_init"
 #endif
 
-ediblevector=0.5
 Athresh = Athresh*volcell   ! Threshold for grazing, um^3/m3
 eps=0
 do isp=1,nospA
@@ -743,12 +779,15 @@ write(6,*) "End cgem_init"
 return
 end subroutine cgem_init
 
-subroutine rad_init(TC_8)
+subroutine DailyRad_init(TC_8)
+
+   use grid, only: km,iYrS,d,dz,d_sfc,lat,lon,dT
+   use date_time
 
    implicit none
 
 !inputs
-    integer(8), intent(in) ::  TC_8  ! Model time (seconds from beginning of Jan 1, 2002)
+    integer(8), intent(in) ::  TC_8  ! Model time (seconds from iYrS)
 
 !loops
     integer k,isp
@@ -760,11 +799,30 @@ subroutine rad_init(TC_8)
     real, dimension(km) :: CDOM_k    ! CDOM, ppb
     real, parameter :: C_cf  = 12.0E-3    ! C conversion factor (mmol-C/m3 to g-C/m3) 
 
-! SAVE KGs for instant remineralization
-    real, save :: KG1_save, KG2_save
+  integer :: jul_day
+  integer :: iYr, iMon, iDay, iHr, iMin, iSec
+  real :: rhr ! decimal hour with fraction thereof
+  real :: bottom_depth(km)
+  real :: Zenith,  calc_solar_zenith !Solar Zenith Angle
+  real :: SfcRad ! solar irradiance just below the surface
+  ! The avg. clear-sky solar energy is 1200 W/m2. Convert it to photons/cm2/sec
+  real, parameter :: solconst = 1200.00 * 2.77e14  ! Morel and Smith (1974) 
+  real, parameter :: RADCONV = 1./6.0221413*1.e-19 ! Convert quanta/cm2/s to mol quanta/m2/s
+                                             ! mol/m2/s = quanta/cm2/s * 1
+                                             ! mol/Avogadro# * 10,000cm2/m2
+                                             !          =  (1/6.022e23) * 1.0e4
+                                             !          = (1/6.022)e-23 * 1.0e4
+                                             !          = (1/6.0221413)e-19
+  real :: Chla_tot_k(km)! Total Chl-a concentration (mg/m3) 
+  real :: aRadMid(km) ! Holds desired output from Call_IOP_Par
+  real :: aRadSum(km)
+
+!Conversions
+!-- Integer Number of sec in 24 hr day
+      integer, parameter :: iSDay = 86400
+
 
        ! Initialize previous day's irradiance for Chl:C calculation
-       ! These duplicated lines execute only once for init
                 do k = 1, km 
                    do isp = 1, nospA
                       A_k(isp,k) = ff(k,isp) ! Phytoplankton in group isp, cells/m3
@@ -778,14 +836,58 @@ subroutine rad_init(TC_8)
                    OM1A_k(k)   = ff(k,iOM1_A)  * C_cf   ! Convert mmol/m3 to g carbon/m3
                    OM1BC_k(k)  = ff(k,iOM1_BC) * C_cf   ! Convert mmol/m3 to g carbon/m3
                 enddo
-                call DailyRad_init(TC_8, lat, lon, d, dz, d_sfc, A_k, &
-                     & CDOM_k, OM1A_k, OM1Z_k, OM1SPM_k, OM1BC_k, aDailyRad_k)
-                aDailyRad = aDailyRad_k
+!--------------
+!call DailyRad_init(TC_8, lat, lon, d, dz, d_sfc, A_k, &
+!                     & CDOM_k, OM1A_k, OM1Z_k, OM1SPM_k, OM1BC_k, aDailyRad_k)
 
-     KG1_save = KG1
-     KG2_save = KG2
+  ! Use fixed C:Chla to estimate chlorophyll a concentration
+  do k = 1, km
+     Chla_tot_k(k) = 0.0
+     do isp = 1, nospA
+        Chla_tot_k(k) =  Chla_tot_k(k)  + A_k(isp,k) * Qc(isp) * 12. * (1./CChla(isp))
+     enddo
+     ! Init for later
+     aRadSum(k) = 0.0
+     bottom_depth(k) = d(k) ! Depth from Surface to bottom of cell
+  enddo
+
+
+  ! Convert time counter into date so we can get the
+  ! day to calculate the correct solar path.
+
+  CALL DATE_TIMESTAMP( iYrS, TC_8, iYr, iMon, iDay, iHr, iMin, iSec )
+
+! Now calculate the Julian Day associated with model time TC_8
+      jul_day = JDAY_IN_YEAR(iYr, iMon, iDay)
+
+  do iSec = 1, iSDay, dT
+     rhr = REAL(iSec) / REAL(3600)
+     Zenith = calc_solar_zenith(lat,lon,rhr,jul_day)
+     SfcRad = solconst * AMAX1( COS(Zenith), 0.0)    ! COS(Z)<= 0 means night
+
+     if(SfcRad .gt. 0.) then
+        Call Call_IOP_PAR(SfcRad, Zenith, CDOM_k, Chla_tot_k, &
+             & OM1A_k, OM1Z_k, OM1SPM_k, OM1BC_k, d(km), dz, km, d_sfc, aRadMid)
+
+        ! Add to running total
+        aRadSum(:) = aRadSum(:) + aRadMid(:)
+     endif
+  enddo
+
+
+  ! Copy result to return variable
+  ! Need to convert from quanta/cm2/s to average mol quanta/m2/d
+  aDailyRad_k(:) = aRadSum(:) * RADCONV * dT
+
+!-------------
+  aDailyRad = aDailyRad_k
+
+
+
+!------------
 
 return
-end subroutine rad_init
+
+END Subroutine DailyRad_init
 
 end module cgem

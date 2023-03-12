@@ -29,17 +29,13 @@ hostname := $(shell uname -n)
 
 ERR = $(shell which ifort >/dev/null; echo $$?)
 
-#NC = $(shell ncdump >/dev/null; echo $$?)
-
 ifeq "$(ERR)" "0"
 #Use intel on ncsu
   F90 = ifort
   F77 = ifort
   FC = ifort
-  INC = -I.  #-I/usr/local/usrapps/ncdfutil/cmaq-libs/intel2018.4-ncdf4/netcdf/include
-#  !LIBS = -L/usr/local/usrapps/ncdfutil/cmaq-libs/intel2018.4-ncdf4/netcdf/lib -lnetcdff -lnetcdf
-  #DFLAGS = -g -warn -debug all -g -check all -ftrapuv #-DDEBUG #-mcmodel=medium -shared-intel
-#  !CFLAGS = -DNCFILE
+  INC =   #-I.  #-I/usr/local/usrapps/ncdfutil/cmaq-libs/intel2018.4-ncdf4/netcdf/include
+  DFLAGS = -g -warn -debug all -g -check all -ftrapuv -DDEBUG #-mcmodel=medium -shared-intel
   include cgem_src/src_files
 else
   F90 = gfortran

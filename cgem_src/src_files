@@ -12,7 +12,6 @@ OBJ  =  \
 	Check_InputFile.o\
 	update_grid.o\
 	getSolar.o\
-        DailyRad_init.o\
 	run_cgem.o\
         SDM.o\
 	Nitrification.o\

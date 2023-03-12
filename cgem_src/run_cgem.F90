@@ -2,6 +2,7 @@
     Subroutine run_cgem( TC_8, istep, ivar )
 
 !======================================================================
+     use grid, only: lat,T,S
      use cgem
      use phyto_growth
      use date_time
@@ -287,7 +288,7 @@ write(6,*) "In cgem, CalcC next, Which_chlaC=",Which_chlaC
 
 
 #ifdef DEBUG
-write(6,*) "In cgem, calculate date_time is next, iYr0=",iYr0
+write(6,*) "In cgem, calculate date_time is next, iYrS=",iYrS
 #endif
 
 
@@ -295,7 +296,7 @@ write(6,*) "In cgem, calculate date_time is next, iYr0=",iYr0
  ! day (iDayTC), hour (iHrTC), minute (iMinTC), and second (iSecTC) 
  ! associated with the midpoint of the present timestep istep TC_8
 
-      CALL DATE_TIMESTAMP( iYr0, TC_8, &
+      CALL DATE_TIMESTAMP( iYrS, TC_8, &
                            iYrTC, iMonTC, iDayTC, iHrTC, iMinTC, iSecTC )
 
  ! Calc HrTC, the decimal hour of day

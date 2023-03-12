@@ -2,7 +2,7 @@ subroutine update_grid(TC_8,istep)
 
 use date_time
 use grid
-use cgem
+!use cgem
 
 implicit none
 
@@ -11,14 +11,7 @@ integer, intent(in) :: istep
 
 !Allocates nea, km(nvrt), nospA/Z, ff
 !Update outside vars - rad, T, S, wind
-call getSolar( iYr0, TC_8, lon, lat, Rad)
+call getSolar( iYrS, TC_8, lon, lat, Rad)
 
-
-#ifdef NCFILE
-if ( mod( istep, iout ) .eq. 0 ) then
- istep_out = istep_out + 1
- call Model_Output_CGEM   !( istep_out )
-endif
-#endif
-
+return
 end subroutine update_grid 

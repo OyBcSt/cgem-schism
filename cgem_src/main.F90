@@ -2,7 +2,7 @@ program main
 
 implicit none
 
-integer(kind=8) :: TC_8  ! Current time in seconds since Model_dim::iYr0.
+integer(kind=8) :: TC_8  ! Current time in seconds since Model_dim::iYrS.
 integer  :: istep,nstep     ! Current time step, total timesteps
 integer :: dT !Timestep
 integer ivar !Which variable to print

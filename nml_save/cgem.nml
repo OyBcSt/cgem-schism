@@ -103,8 +103,7 @@ A_wt = 1. 1. 1.                          !A_wt: Relative proportion of total chl
 !------------------------------------------------------------------------
 !Zooplankton - up to 2 types 
 !------------------------------------------------------------------------
-!namelist /zooplankton/ ediblevector,Zeffic,Zslop,Zvolcell,ZQc,ZQn,ZQp,ZKa,Zrespg,Zrespb,Zumax,Zm 
-ediblevector = 0.4 0.4 0.4 0.6 0.6 0.6 !edibility vector for Z1(A1,A2,A3), Z2(A1,A2,A3)
+!namelist /zooplankton/ Zeffic,Zslop,Zvolcell,ZQc,ZQn,ZQp,ZKa,Zrespg,Zrespb,Zumax,Zm 
 Zeffic = 0.4 0.4		!Zeffic: assimilation efficiency as a fraction of ingestion
 Zslop = 0.25 .0		        !Zslop: proportion of grazed phytoplankton lost to sloppy feeding
 Zvolcell = 2.98e+07 6.74e5      !Zvolcell: zooplankton volume/individual

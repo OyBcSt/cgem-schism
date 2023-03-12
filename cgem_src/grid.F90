@@ -12,11 +12,8 @@ save
 !Grid parameters
 integer :: nea = 1
 integer :: km
-integer :: nospA
-integer :: nospZ
 
 !Simulation parameters
-integer, parameter :: iYr0 = 2002
 integer(8) :: START_SECONDS,END_SECONDS
 
 !--Run Specifics---------------
@@ -62,16 +59,14 @@ return
 end subroutine
 
 
-subroutine grid_read(S_init,T_init,depth_in,lat_in,lon_in)
-  real, intent(out) :: S_init,T_init,depth_in
+subroutine grid_read(Sal_init,Temp_init,depth_in,lat_in,lon_in)
+  real, intent(out) :: Sal_init,Temp_init,depth_in
   real, intent(out) :: lat_in,lon_in
   integer           :: istat,iunit
-  integer :: k
   character(len=1000) :: line
   !http://degenerateconic.com/namelist-error-checking.html
-  namelist /grid/ nea,km,nospA,nospZ
-  namelist /time/ iYrS,iMonS,iDayS,iHrS,iMinS,iSecS,iYrE,iMonE,iDayE,&
-   iHrE,iMinE,iSecE,dT,dT_out,lon_in,lat_in,depth_in,S_init,T_init
+  namelist /hydro/ nea,km,iYrS,iMonS,iDayS,iHrS,iMinS,iSecS,iYrE,iMonE,iDayE,&
+   iHrE,iMinE,iSecE,dT,dT_out,lon_in,lat_in,depth_in,Sal_init,Temp_init
 
 #ifdef DEBUG
 write(6,*) "Begin grid_init"
@@ -79,22 +74,13 @@ write(6,*) "Begin grid_init"
 
   open(action='read',file='grid.nml',iostat=istat,newunit=iunit)
 
-  !namelist /grid/
-  read(nml=grid,iostat=istat,unit=iunit)
+  !namelist /hydro/
+  read(nml=hydro,iostat=istat,unit=iunit)
   if (istat /= 0) then
    backspace(iunit)
    read(iunit,fmt='(A)') line
    write(6,'(A)') &
-          'Invalid line in namelist grid: '//trim(line)
-  endif
-
-  !namelist /time/
-  read(nml=time,iostat=istat,unit=iunit)
-  if (istat /= 0) then
-   backspace(iunit)
-   read(iunit,fmt='(A)') line
-   write(6,'(A)') &
-      'Invalid line in namelist grid: '//trim(line)
+          'Invalid line in namelist hydro: '//trim(line)
   endif
 
   close(iunit)
@@ -104,9 +90,7 @@ end subroutine grid_read
 
 
 subroutine grid_allocate()
-integer i
 integer ierr
-integer :: counter = 0
 
 #ifdef DEBUG
 write(6,*) "Begin grid_allocate" 
@@ -134,24 +118,25 @@ end subroutine grid_allocate
 
 subroutine grid_init(S_init,T_init,depth_in,lat_in,lon_in) 
 
+  integer :: k
+
   real, intent(in) :: S_init,T_init,depth_in
   real, intent(in) :: lat_in,lon_in
-  integer :: k
 
   !Initialize Time stuff
   dTd = dT/SDay         ! Timestep length in units of days
   !StepsPerDay = SDay / dT ! Time steps in a day
   StepsPerDay = 86400 / dT
 
-  ! Compute starting time of run in seconds since Model_dim::iYr0:
+  ! Compute starting time of run in seconds since Model_dim::iYrS:
   START_SECONDS = &
-  TOTAL_SECONDS( iYr0, iYrS, iMonS, iDayS, iHrS, iMinS, iSecS )
+  TOTAL_SECONDS( iYrS, iYrS, iMonS, iDayS, iHrS, iMinS, iSecS )
 #ifdef DEBUG
 write(6,*) "In ReadInput"
 write(6,*) "StartSeconds",START_SECONDS
 #endif
   END_SECONDS = &
-  TOTAL_SECONDS( iYr0, iYrE, iMonE, iDayE, iHrE, iMinE, iSecE )
+  TOTAL_SECONDS( iYrS, iYrE, iMonE, iDayE, iHrE, iMinE, iSecE )
 #ifdef DEBUG
 write(6,*) "In ReadInput"
 write(6,*) "EndSeconds,dT,dT_out",START_SECONDS,dT,dT_out
@@ -174,7 +159,7 @@ write(6,*) "nstep,iout",nstep,iout
   lon = lon_in
   !Radiation
   !Rad = Rad_in
-  call getSolar( iYr0, START_SECONDS, lon, lat, Rad)
+  call getSolar( iYrS, START_SECONDS, lon, lat, Rad)
 
 #ifdef DEBUG
 write(6,*) "lat,lon,Rad",lat,lon,Rad

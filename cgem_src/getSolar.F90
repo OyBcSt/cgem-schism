@@ -1,5 +1,5 @@
 !----------------------------------------------------------------------
-      Subroutine getSolar( iYr0, TC_8, lon, lat, Rad) 
+      Subroutine getSolar( iYrS, TC_8, lon, lat, Rad) 
 !----------------------------------------------------------------------
 !     Written by  ::  D.S.Ko/NRL
 !
@@ -17,8 +17,8 @@
 !----------------------
       real   , intent(in)  :: lon  ! longitude (deg E) at center of cell 
       real   , intent(in)  :: lat  ! latitude (deg N) at center of cell 
-      integer, intent(in)  :: iYr0
-      integer(kind=8), intent(in) :: TC_8 ! Current time in seconds since Model_dim::iYr0
+      integer, intent(in)  :: iYrS
+      integer(kind=8), intent(in) :: TC_8 ! Current time in seconds since Model_dim::iYrS
       real   , intent(out) :: Rad ! Solar Radiation
       integer  :: iYr      ! Year that Time_8 corresponds to
       integer  :: iMon     ! Month that Time_8 corresponds to
@@ -48,7 +48,7 @@
 !-----------------------------------------------------------------------
 
          !Calculate Yr/Mon/Day from Model time in seconds	 
-         call date_timestamp(iYr0,TC_8,iYr,iMon,iDay,iHr,iMin,iSec)
+         call date_timestamp(iYrS,TC_8,iYr,iMon,iDay,iHr,iMin,iSec)
 
          !Hours in day
          rhr = real(iHr,4) + real(iMin,4)*OneD60 + real(iSec,4)*OneD3600
