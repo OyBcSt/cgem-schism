@@ -23,12 +23,18 @@ contains
        select case (print_var)
        case ("A")
          ivar = iA(1)
+       case ("A1")
+         ivar = iA(1)
        case ("Qn")
          ivar = iQn(1)
        case ("Qp")
          ivar = iQp(1)
        case ("Z")
          ivar = iZ(1)
+       case ("Z1")
+         ivar = iZ(1)
+       case ("Z2")
+         ivar = iZ(2)
        case ("NO3")
          ivar = iNO3
        case ("NH4")
@@ -68,7 +74,7 @@ contains
 
        case default
         write(6,*) "These are the only options, case sensitive:"
-        write(6,*) "A,Qn,Qp,Z,NO3,NH4,PO4,DIC,O2"
+        write(6,*) "A,A1,Qn,Qp,Z,Z1,Z2,NO3,NH4,PO4,DIC,O2"
         write(6,*) "OM1_A,OM2_A,OM1_Z,OM2_Z,OM1_R,OM2_R"
         write(6,*) "CDOM,Si,Alk,Tr"
         write(6,*) "or you can choose nothing."
