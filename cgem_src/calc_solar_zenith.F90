@@ -6,8 +6,10 @@
 !     Original MATLAB code Written by: Brad Penta/NRL
 !
 !     Translated into FORTRAN and 
-!     Revised by                     : Barry Herchenroder/EMVL, April 2010
-!                                                               June 2011
+!     Revised by                     : Barry Herchenroder/EMVL, April
+!     2010
+!                                                               June
+!                                                               2011
 !------------------------------------------------------------------------
 
 !-----------------------------------------------------------------------
@@ -23,10 +25,12 @@
   ! sunangle     -> angle of the sun in radians, computed from latitude,
   !                 longitude, Julian day, and time--This is the zenith 
   !
-  ! Compute the sun zenith angle in radians for a given Julian day (julianDay),
+  ! Compute the sun zenith angle in radians for a given Julian day
+  ! (julianDay),
   ! GMT (ihr;in hours), latitude (lat), and longitude (lon).
   !
-  ! Sun angle of pi/2 radians (90 deg) = sun at or below horizon i.e. dark
+  ! Sun angle of pi/2 radians (90 deg) = sun at or below horizon i.e.
+  ! dark
   ! Sun angle of 0 radians (0 deg)     = sun directly overhead.
 !------------------------------------------------------------------------------
 
@@ -36,7 +40,8 @@
 ! Declare variables in the interface
 !------------------------------------------------- 
   REAL   , INTENT(IN)    :: lat          ! Latitude (deg); lat > 0 means
-                                         !                 North of Equator
+                                         !                 North of
+                                         !                 Equator
   REAL   , INTENT(IN)    :: lon          ! Longitude (deg E, 0 <= lon < 360); 
   REAL   , INTENT(IN)    :: rhr          ! decimal Hour of Julian Day  
   INTEGER, INTENT(IN)    :: julianDay    ! Julian Day GMT
@@ -67,7 +72,8 @@ write(6,*) "In calc_solar_zenith"
   rad = 180.0/ (4.0 * atan(1.0))             ! rad = radian to degrees 
                                              !       conversion factor
   thez = 360.0*((FLOAT(julianDay-1)) )/365. ! thez = theta zero orbital 
-                                                 !        position (degs)
+                                                 !        position
+                                                 !        (degs)
   rthez = thez/rad;  ! in radians
 
 !  sdec = solar declination angle in degrees

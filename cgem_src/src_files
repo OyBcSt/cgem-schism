@@ -4,22 +4,14 @@
 
 OBJ  =  \
 	date_time.o\
-        grid.o\
-        cgem.o\
-	phyto_growth.o\
-	Command_Line_Args.o\
-        model_init.o\
-	Check_InputFile.o\
-	update_grid.o\
-	getSolar.o\
-	run_cgem.o\
-        SDM.o\
-	Nitrification.o\
-	rnitrate.o\
-	reaction.o\
-	Q10_T.o\
-	MOD_UTILITIES.o\
 	calc_solar_zenith.o\
-	Call_IOP_PAR.o\
+        grid.o\
+	cgem.o\
+        cgem_growth.o\
+        cgem_misc.o\
+	cgem_utils.o\
+        cgem_light.o\
+	DailyRad_init.o\
+        cgem_step.o\
         main.o
 

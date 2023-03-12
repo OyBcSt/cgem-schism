@@ -1,10 +1,12 @@
-!!======================================================================     
-    Subroutine run_cgem( TC_8, istep, ivar )
+!======================================================================     
+    Subroutine cgem_step( TC_8, istep, ivar )
 
 !======================================================================
      use grid, only: lat,T,S
      use cgem
-     use phyto_growth
+     use cgem_light
+     use cgem_growth
+     use cgem_utils
      use date_time
      use mvars
 
@@ -13,9 +15,9 @@
 !---------------------------------------------
 ! Interface variables
 !---------------------------------------------------------------------
-    integer(kind=8), intent(in) :: TC_8         ! Model time (seconds from beginning of Jan 1, 2002)
+    integer, intent(in)  :: TC_8         ! Model time (seconds from beginning of Jan 1, 2002)
     integer, intent(in)  :: istep     ! Current time step
-    integer, intent(in)  :: ivar   ! Which variable to print out...just k=1
+    integer, intent(in)  :: ivar   ! which variable to print out...just k=1
 !---------------------------------------------------------------------------------------
 ! Local Variables
 !-----------------------------------------------------
@@ -104,10 +106,6 @@
 !---------------------------------------------------------------------- 
 ! Time variables  
     real, parameter :: one_d_365  = 1.0/365.0 ! Convert 1/yr to 1/day
-    real, parameter :: OneD60     = 1.0/60.0  ! Convert 1/min to 1/sec
-    real            :: HrTC          ! Decimal hour of day
-    integer         :: iYrTC, iMonTC, iDayTC, iHrTC, iMinTC, iSecTC !Time variables
-    integer         :: julianDay     ! Holds Julian Day
 !-----------------------------------------------------------------------
 ! Organic Matter Calculations
    ! Variables to calculate stoichiometry C:N:P ratios
@@ -138,15 +136,9 @@
     real, dimension(10) :: RC   ! Array that returns remineralization terms for OM
 !---------------------------------------------------------
 ! Variables needed for light routine and calc_Agrow
-    real    :: SunZenithAtm       ! Solar beam zenith angle
-    real    :: calc_solar_zenith  ! Function, calculates solar beam zenith angle
-    real    :: Katt               ! Attenuation coefficient for Irradiance model 2 
-    real    :: tmpexp             ! Intermediate calculation
-    real    :: PARbotkm1          ! Irradiance at bottom of layer k-1 (quanta/cm2/s)
-    real    :: PARtopk            ! Irradiance at top of layer k (quanta/cm2/s)
-    real    :: PARsurf            ! Irradiance just below the sea surface (quanta/cm2/s) 
     real    :: PARbot             ! Irradiance at sea floor (quanta/cm2/s)
     real    :: PARdepth_k(km)    ! Irradiance at center of layer k (quanta/cm2/s)
+    real    :: PARsurf            ! Irradiance just below sea surface
     real       :: aDailyRad_k(km), aRadSum_k(km)
     real, parameter :: RADCONV = 1./6.0221413*1.e-19 ! Convert quanta/cm2/s to mol/m2/s:
                                                !  = quanta/cm2/s * 1 mol/Avogadro# * 10,000cm2/m2
@@ -155,18 +147,14 @@
     real, dimension(km) :: Chla_tot_k  ! Total amount of Chl-a in all the
                                         !  phytoplankton species (mg/m3) per cell
     real, dimension(nospA,km) :: Chl_C_k     ! Chl:C
-    real, dimension(km) :: OM1A_k, OM1Z_k, OM1SPM_k, OM1BC_k !POC in g/m3
+    real, dimension(km) :: OM1A_k, OM1Z_k, OM1R_k, OM1BC_k !POC in g/m3
     real, dimension(km) :: CDOM_k    ! CDOM, ppb
-    real, dimension(km) :: N_k       ! Nitrogen, mmol/m3
-    real, dimension(km) :: P_k       ! Phosphorus, mmol/m3
     real, dimension(km) :: Si_k      ! Silica, mmol/m3
     real, dimension(km) :: S_k, T_k  ! Salinity and Temperature(Celsius)
-    real, parameter :: C_cf  = 12.0E-3    ! C conversion factor (mmol-C/m3 to g-C/m3) 
 !-----------------------------------------------------------------------
 ! Other variables 
     real :: PrimProd                     ! Primary production (photosynthesis)
     real, dimension(nospA+nospZ) :: Tadj ! Temperature adjustment factor
-    real :: Q10_T                        ! Temperature adjustment Q10 relation
 !------------------------------------------------------------------    
 ! SAVE KGs for instant remineralization
     real, save :: KG1_save, KG2_save
@@ -227,26 +215,22 @@ write(6,*) "init loop, ZQp, nea, km",ZQp,k
 #endif
 
          ! Silica is mmol Si/m3
-           N_k(k)     = ff(k,iNO3)+ff(k,iNH4)
-           P_k(k)     = ff(k,iPO4)
            Si_k(k)    = ff(k,iSi)
          ! CDOM is in ppb
            CDOM_k(k)  = ff(k,iCDOM)
          ! Below is mmol/m3 Organic Matter from rivers converted to equivalent g carbon/m3
-           OM1SPM_k(k) = ff(k,iOM1_R) * C_cf 
-         ! There is 1.8% Organic Matter in SPM originating from the rivers.
-           OM1SPM_k(k) = OM1SPM_k(k)/0.018
+           OM1R_k(k) = ff(k,iOM1_R)
          ! Below is mmol/m3 Organic Matter from fecal pellets converted to equivalent g carbon/m3
-           OM1Z_k(k) = ff(k,iOM1_Z) * C_cf 
+           OM1Z_k(k) = ff(k,iOM1_Z)
          ! Below is mmol/m3 Organic Matter from dead phytoplankton converted to equivalent g carbon/m3
-           OM1A_k(k)  = ff(k,iOM1_A) * C_cf 
+           OM1A_k(k)  = ff(k,iOM1_A)
          ! Below is mmol/m3 Organic Matter from initial and boundary conditions converted to equivalent g carbon/m3
-           OM1BC_k(k)  = ff(k,iOM1_BC) * C_cf 
+           OM1BC_k(k)  = ff(k,iOM1_BC)
            aDailyRad_k(k) = aDailyRad(k)
       enddo ! End of the "DO k = 1, km" block DO loop
 
 #ifdef DEBUG
-write(6,*) "In cgem, CalcC next, Which_chlaC=",Which_chlaC
+write(6,*) "In cgem, CalcC next, which_chlaC=",which_chlaC
 #endif
 
 !----------------------------------------------------------------
@@ -254,22 +238,23 @@ write(6,*) "In cgem, CalcC next, Which_chlaC=",Which_chlaC
 ! Get chlorophyll-a quantity per layer
 ! 
 !----------------------------------------------------------------
-      select case (Which_chlaC)
+      select case (which_chlaC)
       case (1) ! Use fixed C:Chla 
-         Chla_tot_k = Fixed_CChla(A_k)
+!L3         Chla_tot_k = Fixed_CChla(A_k)
+            Chla_tot_k = Fixed_CChla(ff(:,iA(:)))
          do k=1,km
                 if(Chla_tot_k(k).le.0) then
-                    write(6,*) "le 0",k,Chla_tot_k(k),A_k(:,k)
+                    write(6,*) "le 0",k,Chla_tot_k(k),ff(k,iA(:))
                 endif
          enddo
 
       case (2) ! Use Cloern Chl:C ratio
-         Chla_tot_k = Chla_Cloern(A_k, Qn_k, Qp_k, N_k, P_k, Si_k, T_k, aDailyRad_k,Chl_C_k)
+         Chla_tot_k = Chla_Cloern(ff(k,iA(:)), Qn_k, Qp_k, Si_k, T_k, aDailyRad_k,Chl_C_k)
 
       case default
-         WRITE(6, "(/'The inputfile specified invalid setting: Which_chlaC = ', I2/)") Which_chlaC
-         WRITE(6, "('Which_chlaC determines the method for calculating the quantity of chlorophyll-a.')")
-         WRITE(6, "('Please set Which_chlaC to one of these values:'/)")
+         WRITE(6, "(/'The inputfile specified invalid setting: which_chlaC = ', I2/)") which_chlaC
+         WRITE(6, "('which_chlaC determines the method for calculating the quantity of chlorophyll-a.')")
+         WRITE(6, "('Please set which_chlaC to one of these values:'/)")
          WRITE(6, "('1:')")
          WRITE(6, "('  Use fixed C:Chla.'/)")
          WRITE(6, "('2:')")
@@ -277,7 +262,7 @@ write(6,*) "In cgem, CalcC next, Which_chlaC=",Which_chlaC
          WRITE(6, "('Run aborted.'/)")
 
          STOP
-      end select ! Which_chlaC
+      end select ! which_chlaC
 
 
 !----------------------------------------------------------------------
@@ -285,34 +270,6 @@ write(6,*) "In cgem, CalcC next, Which_chlaC=",Which_chlaC
 ! the effect amount of downward spectrally integrated irradiance 
 ! just below the sea surface.  'Rad' is just above sea surface. 
 !----------------------------------------------------------------------
-
-
-#ifdef DEBUG
-write(6,*) "In cgem, calculate date_time is next, iYrS=",iYrS
-#endif
-
-
- ! First calculate the Julian(GMT) model year (iYrTC), month (iMonTC), 
- ! day (iDayTC), hour (iHrTC), minute (iMinTC), and second (iSecTC) 
- ! associated with the midpoint of the present timestep istep TC_8
-
-      CALL DATE_TIMESTAMP( iYrS, TC_8, &
-                           iYrTC, iMonTC, iDayTC, iHrTC, iMinTC, iSecTC )
-
- ! Calc HrTC, the decimal hour of day
-       HrTC = real(iHrTC,4) + OneD60*iMinTC + OneD60*iSecTC
-
- ! Now calculate the Julian Day associated with model time TC_8
-      julianDay = JDAY_IN_YEAR(iYrTC, iMonTC, iDayTC)
-
-#ifdef DEBUG
-write(6,*) "In cgem, calculate SunZenithAtm is next, Which_irradiance=",Which_irradiance
-#endif
-
-
- ! Now calculate SunZenithAtm, the solar beam zenith angle in radians
- ! for a given GMT Julian day, hour, longitude and latitude 
-     SunZenithAtm = calc_solar_zenith(lat, lon,  HrTC, julianDay )
 
  !--Begin Calculate atmospheric model --------------------------------
          ! Rad(i) is short wave generated by NRL is used,
@@ -342,79 +299,14 @@ write(6,*) "In cgem, calculate SunZenithAtm is next, Which_irradiance=",Which_ir
          PARdepth_k = 0.0
         else
 
-         select case (Which_irradiance)
-
-                 !--------------------------------------------
-         case (1)! Upgraded form of the underwater light model
-                 ! developed by Brad Penta of NRL is used
-                 !--------------------------------------------
-
-#ifdef DEBUG
-  write(6,*) "In cgem, calling Brad's light model, km,PARsurf=",km,PARsurf
-#endif
-
-                do k=1,km
-                  do isp=1,nospA
-                  if( A_k(isp,k) .lt. 0 ) then
-                    write(6,*) "A_k le 0,Chla,A_k",k,Chla_tot_k(k),A_k(isp,k)
-                  endif
-                  enddo
-                enddo
-
-                 if(km.gt.0) call Call_IOP_PAR(                        &
-                 & PARsurf    , SunZenithAtm,                          &
-                 & CDOM_k     , Chla_tot_k,                            &
-                 & OM1A_k     , OM1Z_k,                                &
-                 & OM1SPM_k   , OM1BC_k,                               &
-                 & d(km), dz, km, d_sfc,                          &
-                 & PARdepth_k       )
-
-#ifdef DEBUG
-     write(6,*) "PARsurf,SunZenithAtm,PARbottom",PARsurf,SunZenithAtm,PARdepth_k(km)
-#endif
-
-                 !-------------------------------------------------
-         case (2)! Upgraded form of the original underwater light
-                 ! model of Pete Eldridge is used. Now accounts for
-                 ! light attenuation in each k layer rather than for the whole
-                 ! mixed layer as in the Eldridge & Roelke(2010) code 
-                 !-------------------------------------------------
-                 PARbotkm1 = PARsurf             ! initialize at top of
-                                                 ! column i., i.e.
-                                                 ! at bottom of layer "zero".
-                 do k = 1, km
-                   !Calculate attenuation coefficient
-                     Katt    = Kw                                                  &
-                     &       + Kchla   * Chla_tot_k(k)                             &
-                     &       + Kspm * (OM1SPM_k(k)+OM1A_k(k)+OM1Z_k(k)+OM1BC_k(k)) &
-                     &       + Kcdom* CDOM_k(k)                                    &
-                     &       + (((0.0022*S_k(k))-0.158)*S_k(k)+3.03)
-                     PARtopk = PARbotkm1         ! irradiance at top of
-                                                 ! layer k is same as
-                                                 ! irradiance at bottom
-                                                 ! of layer km1
-                     tmpexp  = exp(-0.5*Katt*dz(k))
-                     PARdepth_k(k) = PARtopk * tmpexp    ! irradiance at middle of layer k
-                     PARbot  = PARdepth_k(k) * tmpexp    ! irradiance at bottom of layer k
-                     PARbotkm1 = PARbot         ! reinitialize for next top layer
-                 enddo 
-
-         case default
-             write(6,*) "Error in irradiance switch"
-             stop
-         end select
+        call calc_PARdepth( TC_8,PARSurf,S_k,Chla_tot_k,CDOM_k,OM1A_k,OM1Z_k,      &
+   &                        OM1R_k,OM1BC_k,PARdepth_k,PARbot,aRadSum_k )
 
         endif !Endif for if it has PAR
 !---------------------End Underwater Light Model-----------------------------------
-#ifdef DEBUG
+#ifdef DEBUG2
 write(6,*) "In cgem, Finished Underwater Light Model"
-#endif
-
-!
-! Update running total of current day's irradiance
-         aRadSum_k(:) = aRadSum(:) + PARdepth_k(:)
-#ifdef DEBUG
-write(6,*) "In cgem, aRadSum_k"
+write(6,*) "aRadSum_k(1)=",aRadSum_k(1)
 #endif
 
          if (MOD(istep, StepsPerDay) .eq. 0) then ! If last time step of day
@@ -445,7 +337,7 @@ write(6,*) "In cgem, summing daily rad, about to call calc_Agrow"
 !-----------------------------------------------------------------------
 
        if(km .gt. 0) call calc_Agrow( PARdepth_k, T_k,              &
-                     & Qn_k, Qp_k, N_k, P_k, Si_k , A_k, Agrow_k,   &
+                     & Qn_k, Qp_k, Si_k , A_k, Agrow_k,   &
                      & uA_k, Aresp_k, uN_k, uP_k, uE_k, uSi_k )
 
 !------end phytoplankton growth model-------------------------
@@ -478,9 +370,9 @@ write(6,*) "In cgem, ediblevector,volcell=",ediblevector,volcell
           bottom(isz) = SUM(bottom_A(:,isz))   ! sum over isp
          enddo
 
-          do isp = 1, nospA
-	     monodZ(isp,:)  = top_A(isp,:)/(ZKa(:) + bottom(:))
-	  enddo 
+         do isp = 1, nospA
+           monodZ(isp,:)  = top_A(isp,:)/(ZKa(:) + bottom(:))
+         enddo 
 
 #ifdef DEBUG
 write(6,*) "In cgem, initialized top, bottom, monod" 
@@ -691,8 +583,8 @@ write(6,*) "In cgem, updated iA"
 !----------------------------------------------------------------------
       Qn = ff(k,iQn(isp)) + (vN - Qn*uA)*dTd
       
-! Enforce minima, also enforce maxima if not equal Droop (Which_quota=1)
-      if(Which_quota.eq.1) then
+! Enforce minima, also enforce maxima if not equal Droop (which_quota=1)
+      if(which_quota.eq.1) then
            Qn = AMAX1(Qn,QminN(isp))
       else
            Qn = AMIN1(AMAX1(Qn,QminN(isp)),QmaxN(isp))
@@ -708,8 +600,8 @@ write(6,*) "In cgem, updated iQn"
 !----------------------------------------------------------------------
       Qp = ff(k,iQp(isp)) + (vP - Qp*uA)*dTd
 
-! Enforce minima, also enforce maxima if not equal Droop (Which_quota=1)
-      if(Which_quota.eq.1) then
+! Enforce minima, also enforce maxima if not equal Droop (which_quota=1)
+      if(which_quota.eq.1) then
            Qp = AMAX1(Qp,QminP(isp))
       else
            Qp = AMIN1(AMAX1(Qp,QminP(isp)),QmaxP(isp))
@@ -808,7 +700,7 @@ write(6,*) "In cgem, updated iQn"
       &      + (Zgrow(:) - Zresp(:) - Zmort(:))*dTd, 1.)
 
 #ifdef DEBUG
-write(6,*) "In cgem, updated iZ, Which_Fluxes(iInRemin),KG_bot=",Which_Fluxes(iInRemin),KG_bot
+write(6,*) "In cgem, updated iZ, which_Fluxes(iInRemin),KG_bot=",which_Fluxes(iInRemin),KG_bot
 #endif
 
 !------------------------------------------------------------------------
@@ -817,7 +709,7 @@ write(6,*) "In cgem, updated iZ, Which_Fluxes(iInRemin),KG_bot=",Which_Fluxes(iI
 ! Remineralization - reactions
 !---------------------------------------------------------------
        ! Instant Remineralization, if on bottom of shelf, redefine KG's
-       if(k.eq.km.and.Which_fluxes(iInRemin).eq.1) then
+       if(k.eq.km.and.which_fluxes(iInRemin).eq.1) then
            KG1 = KG_bot
            KG2 = KG_bot
        endif
@@ -935,7 +827,7 @@ write(6,*) "In cgem, finished reaction R"
         RN2_BC      = RC(10)
 
        ! Instant Remineralization, change KG's back to original
-       if(k.eq.km.and.Which_fluxes(iInRemin).eq.1) then
+       if(k.eq.km.and.which_fluxes(iInRemin).eq.1) then
            KG1 = KG1_save
            KG2 = KG2_save
        endif
@@ -1243,5 +1135,5 @@ endif
 !-- End Main GEM Calculations ---------------------------------------------------
 
    return
-   end subroutine run_cgem 
+   end subroutine cgem_step
 !---------------------------------------------------------------------- 

@@ -1,46 +1,42 @@
 program main
 
+use cgem, only:dT,nstep
+use cgem_misc
+
 implicit none
 
-integer(kind=8) :: TC_8  ! Current time in seconds since Model_dim::iYrS.
-integer  :: istep,nstep     ! Current time step, total timesteps
-integer :: dT !Timestep
-integer ivar !Which variable to print
+integer         :: TC_8  ! Current time in seconds since Model_dim::iYrS.
+integer         :: istep ! Current time step
+integer         :: ivar  !Which variable to print
 
-#ifdef DEBUG
-write(6,*) "In main, before model_init"
-#endif
+!Initialize grid
+call grid_setup
 
+!Initialize cgem
+call cgem_setup
 
-!Initializes everything
-call model_init(TC_8,dT,nstep)
+! Compute starting time of run in seconds since Model_dim::iYrS:
+TC_8 = TOTAL_SECONDS( iYrS, iYrS, iMonS, iDayS, iHrS, iMinS, iSecS )
+
+call DailyRad_Init(TC_8)
 
 call Check_InputFile
-
-!call check_grid(TC_8,dT)
 
 !Need to define vars before figuring out which to print
 call Command_Line_Args(ivar)
 
-!!======================================================================     
-!    Subroutine CGEM( TC_8, istep )
-
 #ifdef DEBUG
-write(6,*) "In main, before run_cgem, TC_8:",TC_8
+write(6,*) "In main, before cgem_step, TC_8:",TC_8
 #endif
 
 do istep=1,nstep
-call run_cgem(TC_8,istep,ivar)
+call cgem_step(TC_8,istep,ivar)
 TC_8 = TC_8 + dT
-call update_grid(TC_8,istep)
+call grid_update(TC_8)
 enddo
 
 #ifdef DEBUG
-write(6,*) "In main, after cgem, TC_8,istep:",TC_8,istep
-#endif
-
-#ifdef NCFILE
-call Model_Finalize_CGEM
+write(6,*) "In main, after cgem_step, TC_8,istep:",TC_8,istep
 #endif
 
 end program main
