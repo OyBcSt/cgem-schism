@@ -4,8 +4,8 @@ This repo is CGEM code that is being reformatted into a SCHISM module.  (Sorry, 
 
 It can be used to run and visualize CGEM equations in a 1D water column with no boundary conditions.
 
-So far:
-- fixed temperature and salinity
+Right now:
+- Temperature and salinity are fixed, set in grid.nml
 - RAD calculated by solar zenith angle (lat/lon/time)
 - Cloern is there but I didn't test it (check DailyRad_init)
 - no fluxes tested (yet)
