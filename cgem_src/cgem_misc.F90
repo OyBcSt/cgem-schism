@@ -54,9 +54,9 @@ contains
        case ("OM2_Z")
          ivar = iOM2_Z
        case ("OM1_R")
-         ivar = iOM1_Z
+         ivar = iOM1_R
        case ("OM2_R")
-         ivar = iOM2_Z
+         ivar = iOM2_R
        case ("OM1_BC")
          ivar = iOM1_BC
        case ("OM2_BC")

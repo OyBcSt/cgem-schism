@@ -410,6 +410,10 @@ write(6,*) "In cgem, initialized top, bottom, monod"
         OM2_Z    = ff(k,iOM2_Z)
         OM1_R    = ff(k,iOM1_R)
         OM2_R    = ff(k,iOM2_R)
+#ifdef DEBUG_R
+write(6,*) "k,OM1_R",k,OM1_R
+write(6,*) "k,OM2_R",k,OM2_R
+#endif
         OM1_BC    = ff(k,iOM1_BC)
         OM2_BC    = ff(k,iOM2_BC)
 

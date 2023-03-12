@@ -43,8 +43,8 @@ else
   FC = gfortran
   INC =
   LIBS =
-  DMFLAGS = -fimplicit-none -fbacktrace
-  DFLAGS = -Wall -Wextra -pedantic -fimplicit-none -fbacktrace #-DDEBUG -DDEBUG_PAR #-D_CGEM -DRDEBUG -DDEBUG 
+  DMFLAGS = #-fimplicit-none -fbacktrace
+  DFLAGS = #-Wall -Wextra -pedantic -fimplicit-none -fbacktrace #-DDEBUG -DDEBUG_PAR #-D_CGEM -DRDEBUG -DDEBUG 
   CFLAGS = 
   include cgem_src/src_files
 endif
