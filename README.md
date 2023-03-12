@@ -14,6 +14,8 @@ So far:
 And this will never have:
 - transport.  That's SCHISM's job.
 
+This is not a production repo!  The purpose is for testing code changes.  The general workflow is to `git commit` locally and only do a `push` to GitHub when everything is working, then after the push, make necessary changes to the Python/Notebook.  That narrows the **OMG it's broken!** window a bit, but not completely.  If we're broken, please come back later. 
+
 ## Compile and run CGEM and make basic plots
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/lisalenorelowe/cgem-schism.git/HEAD?labpath=cgem.ipynb)
 
