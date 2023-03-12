@@ -13,4 +13,5 @@ Shows how to change an input with f90nml command, then rerun the code to check r
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/lisalenorelowe/cgem-schism.git/HEAD?labpath=cgem_testing.ipynb)
 
 ## Check all variables after code changes
+This notebook prints each variable at each k layer
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/lisalenorelowe/cgem-schism.git/HEAD?labpath=cgem_check.ipynb)

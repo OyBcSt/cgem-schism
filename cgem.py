@@ -49,3 +49,20 @@ def cgem_timearray(var,grid):
         res.append(Tstart+x*dt)
     return res
 
+
+def cgem_plotks(grid,which_var):
+    print("Plotting CGEM variable",which_var)
+    results = subprocess.run(['./CGEM.exe',which_var],stdout=subprocess.PIPE, text=True)
+    ar = results.stdout.splitlines()
+    result = np.array(list(map(str.strip,ar))).astype(float)
+    time = cgem_timearray(result,grid)
+    km = grid.get('hydro').get('km')
+    fig, ax = plt.subplots(figsize=(15, 3))
+    for i in range (1,km+1):
+        x = str(i)
+        results = subprocess.run(['./CGEM.exe',which_var,x],stdout=subprocess.PIPE, text=True)
+        ar = results.stdout.splitlines()
+        result = np.array(list(map(str.strip,ar))).astype(float)
+        label = which_var + " k=" + x
+        ax.plot(time,result,label=label)
+    ax.legend()
