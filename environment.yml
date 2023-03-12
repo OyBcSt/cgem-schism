@@ -4,4 +4,6 @@ channels:
 dependencies:
   - f90nml
   - numpy 
-  - gfortran 
+  - gfortran
+  - pandas
+  - matplotlib 
