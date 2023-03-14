@@ -35,6 +35,7 @@ This notebook shows how to change parameters and makes plots of each phytoplankt
 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/lisalenorelowe/cgem-schism.git/HEAD?labpath=cgem_A6.ipynb)
 
+## That's it for now!
 If you happen to be browsing and see something odd, please open an Issue and let us know.  
 
 If you browse, and make changes, figure out some good parameters, or develop new Python code to look at stuff, SAVE your work locally! The Notebooks, nml files, cgem.py, everything new thing you created will disappear forever when Binder stops.
