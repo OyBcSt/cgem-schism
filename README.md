@@ -1,5 +1,7 @@
 # cgem-schism
 
+## About
+
 This repo is CGEM code<sup>**</sup> that is being reformatted into a SCHISM module.  (Sorry, no actual SCHISM here!).
 It can be used to run and visualize CGEM equations in a 1D water column with no boundary conditions.
 
@@ -15,14 +17,14 @@ Right now:
 And this will never have:
 - transport.  That's SCHISM's job.
 
-
-
 This is not a production repo!  The purpose is for testing code changes.  The general workflow is to `git commit` locally and only do a `push` to GitHub when everything is working, then after the push, make necessary changes to the Python/Notebook.  That narrows the **OMG it's broken!** window a bit, but not completely.  If we're broken, please come back later. 
 
 ## How to use the Notebooks
 - Clicking on the "launch binder" icon will start a Notebook
 - Be patient, it might take some time.  It is starting up a VM (little computer in the cloud), installing all the necessary Python packages, and loading the data...and all for free!
 - Once you start one Notebook, you can click the folder icon on the left and access any other Notebook.  You don't have to launch a new Binder.  
+
+## The Notebooks
 
 ### Compile and run CGEM and make basic plots
 A basic tour of CGEM Python interface: compiling and running code, changing the inputs, calculating stuff, and making plots.
