@@ -31,6 +31,10 @@ A basic tour of CGEM Python interface: compiling and running code, changing the 
 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/lisalenorelowe/cgem-schism.git/HEAD?labpath=cgem.ipynb)
 
+### Check temperature dependence 
+Plots Phytoplankton growth at two different temperatures
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/lisalenorelowe/cgem-schism.git/HEAD?labpath=cgem.ipynb)
+
 ### Check all variables after code changes
 This notebook prints each variable at each k layer
 

@@ -8,7 +8,7 @@ def cgem_plot1D(grid,which_var):
     results = subprocess.run(['./CGEM.exe',which_var],stdout=subprocess.PIPE, text=True)
     ar = results.stdout.splitlines()
     result = np.array(list(map(str.strip,ar))).astype(float)
-    time = cgem_timearray(result,grid)
+    time = cgem_timearray(grid)
     fig, ax = plt.subplots(figsize=(15, 3))
     ax.plot(time,result,label=which_var)
     ax.legend(loc='upper left')
@@ -40,22 +40,22 @@ def cgem_tend(grid):
     T = datetime(iYrE, iMonE, iDayE, iHrE, iMinE, iSecE)
     return T
 
-def cgem_timearray(var,grid):
+def cgem_timearray(grid):
+    results = subprocess.run(['./CGEM.exe','A'],stdout=subprocess.PIPE, text=True)
+    ar = results.stdout.splitlines()
+    result = np.array(list(map(str.strip,ar))).astype(float)
     Tstart = cgem_tstart(grid)
     dtout = grid.get('hydro').get('dt')
     dt = timedelta(seconds=dtout)
     res = []
-    for x in range (0, len(var)):
+    for x in range (0, len(result)):
         res.append(Tstart+x*dt)
     return res
 
 
 def cgem_plotks(grid,which_var):
     print("Plotting CGEM variable",which_var)
-    results = subprocess.run(['./CGEM.exe',which_var],stdout=subprocess.PIPE, text=True)
-    ar = results.stdout.splitlines()
-    result = np.array(list(map(str.strip,ar))).astype(float)
-    time = cgem_timearray(result,grid)
+    time = cgem_timearray(grid)
     km = grid.get('hydro').get('km')
     fig, ax = plt.subplots(figsize=(30, 5))
     for i in range (1,km+1):
@@ -70,10 +70,7 @@ def cgem_plotks(grid,which_var):
     
 def cgem_plotAs(grid,cgem):
     print("Plotting Phytoplankton Groups")
-    results = subprocess.run(['./CGEM.exe','A'],stdout=subprocess.PIPE, text=True)
-    ar = results.stdout.splitlines()
-    result = np.array(list(map(str.strip,ar))).astype(float)
-    time = cgem_timearray(result,grid)
+    time = cgem_timearray(grid)
     nospA = cgem.get('nosp').get('nospA')
     fig, ax = plt.subplots(figsize=(30, 5))
     for i in range (1,nospA+1):
