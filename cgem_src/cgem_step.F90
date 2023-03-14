@@ -1128,7 +1128,9 @@ write(6,*) "In cgem, updated ALK"
 
 
 if(ivar.ne.0) then
-  !write(6,*) "ivar,ivark=",ivar,ivark
+#ifdef DEBUG
+  write(6,*) "ivar,ivark=",ivar,ivark
+#endif
   write(6,*) ff(ivark,ivar)
 endif
 

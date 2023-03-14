@@ -11,7 +11,7 @@
 !Number of Phyto and Zooplankton species
 !------------------------------------------------------------------------
 !namelist /nosp/ nospA, nospZ
-nospA = 1
+nospA = 6
 nospZ = 2
 !------------------------------------------------------------------------
 /
@@ -58,10 +58,10 @@ sinkCDOM = 0.         !sinkCDOM: sinking rate of CDOM
 !temperature - phyto/zooplankton growth
 !--------------------------------------------------------------------------
 !namelist /temperature/ Tref,KTg1,KTg2,Ea
-Tref = 17. 22. 26.                        !Tref(nospA+nospZ): Optimum temperature for growth(C)
-KTg1 = 0.0035 0.0035 0.0035    !KTg1(nospA+nospZ): Effect of T below Topt(C^2)
-KTg2 = 0.001 0.001 0.001         !KTg2(nospA+nospZ): Effect of T above Topt(C^2)
-Ea   = 0.61 0.61 0.61               !Ea(nospA+nospZ): Slope of Arrhenius plot(eV)
+Tref = 17. 17. 17. 17. 17. 17. 22. 26.                          !Tref(nospA+nospZ): Optimum temperature for growth(C)
+KTg1 = 0.0035 0.0035 0.0035 0.0035 0.0035 0.0035 0.0035 0.0035  !KTg1(nospA+nospZ): Effect of T below Topt(C^2)
+KTg2 = 0.001 0.001 0.001 0.001 0.001 0.001 0.001 0.001          !KTg2(nospA+nospZ): Effect of T above Topt(C^2)
+Ea   = 0.61 0.61 0.61 0.61 0.61 0.61 0.61 0.61                  !Ea(nospA+nospZ): Slope of Arrhenius plot(eV)
 !------------------------------------------------------------------------
 /
 
@@ -71,32 +71,32 @@ Ea   = 0.61 0.61 0.61               !Ea(nospA+nospZ): Slope of Arrhenius plot(eV
 !------------------------------------------------------------------------
 !namelist /phytoplankton/ umax,CChla,alpha,beta,respg,respb,
 !QminN,QminP,QmaxN,QmaxP,Kn,Kp,Ksi,KQn,KQp,nfQs,vmaxN,vmaxP,vmaxSi,aN,volcell,Qc,Athresh,sinkA,mA,A_wt
-umax = 1.12                  !umax: maximum growth rate
-CChla = 181.477        !CChla: Fixed C:Chla ratio
-alpha = 3.96e-16     !alpha: initial slope of the photosynthesis-irradiance relationship
-beta = 1.1e-18         !beta: photoinhibition constant
-respg = 0.1 	      !respg: phytoplankton growth respiration coefficient
-respb = 0.02                 !respb: phytoplankton basal respiration coefficient 
-QminN = 1.53e-10     !QminN: minimum N cell-quota
-QminP = 1.07e-11     !QminP: minimum P cell-quota
-QmaxN = 6.85e-9      !QmaxN: maximum N cell-quota
-QmaxP = 4.28e-10    !QmaxP: maximum P cell-quota
-Kn = 1.13  !Kn: half-saturation constant for N 
-Kp = 0.51  !Kp: half-saturation constant for P
-Ksi = 1.13 !Ksi: half-saturation constant for Si uptake 
-KQn = 5.                 !KQn: Qn constant for Flynn nutrient dependent growth model
-KQp = 0.2           !KQp: Qp constant for Flynn nutrient dependent growth model 
-nfQs = 1.                 !nfQs: exponent for Geider nutrient uptake model 
-vmaxN = 1.33e-09     !vmaxN: N-uptake rate measured at umax
-vmaxP = 4.07e-10     !vmaxP: P-uptake rate measured at umax
-vmaxSi = 1.33e-09    !vmaxSi: Si-uptake rate measured at umax
-aN = 1.              !aN: coefficient for non-limiting nutrient
-volcell = 513.           !volcell: phytoplankton volume/cell
-Qc = 4.54e-08        !Qc: phytoplankton carbon/cell
-Athresh = 7e+07   !Athresh: Phytoplankton threshold for grazing, is multiplied by VOLcell 
-sinkA = 0.29 		      !sinkA: sinking rate of phytoplankton cells
-mA = 0.11 		      !mA: mortality coefficient 
-A_wt = 1.                           !A_wt: Relative proportion of total chlA for initializing phytoplankton
+umax = 1.12 1.12 1.12 1.12 1.12 1.12    !umax: maximum growth rate
+CChla = 181.477 181.477 181.477 181.477 181.477 181.477         !CChla: Fixed C:Chla ratio
+alpha = 3.96e-16 3.96e-16 3.96e-16 3.96e-16 3.96e-16 3.96e-16     !alpha: initial slope of the photosynthesis-irradiance relationship
+beta = 1.1e-18 1.1e-18 1.1e-18 1.1e-18 1.1e-18 1.1e-18         !beta: photoinhibition constant
+respg = 0.1 0.1 0.1 0.1 0.1 0.1 	      !respg: phytoplankton growth respiration coefficient
+respb = 0.02 0.02 0.02 0.02 0.02 0.02                 !respb: phytoplankton basal respiration coefficient 
+QminN = 1.53e-10 1.53e-10 1.53e-10 1.53e-10 1.53e-10 1.53e-10     !QminN: minimum N cell-quota
+QminP = 1.07e-11 1.07e-11 1.07e-11 1.07e-11 1.07e-11 1.07e-11     !QminP: minimum P cell-quota
+QmaxN = 6.85e-9 6.85e-9 6.85e-9 6.85e-9 6.85e-9 6.85e-9      !QmaxN: maximum N cell-quota
+QmaxP = 4.28e-10 4.28e-10 4.28e-10 4.28e-10 4.28e-10 4.28e-10    !QmaxP: maximum P cell-quota
+Kn = 1.13 1.13 1.13 1.13 1.13 1.13  !Kn: half-saturation constant for N 
+Kp = 0.51 0.51 0.51 0.51 0.51 0.51  !Kp: half-saturation constant for P
+Ksi = 1.13 1.13 1.13 1.13 1.13 1.13 !Ksi: half-saturation constant for Si uptake 
+KQn = 5. 5. 5. 5. 5. 5.                 !KQn: Qn constant for Flynn nutrient dependent growth model
+KQp = 0.2 0.2 0.2 0.2 0.2 0.2           !KQp: Qp constant for Flynn nutrient dependent growth model 
+nfQs = 1. 1. 1. 1. 1. 1.                 !nfQs: exponent for Geider nutrient uptake model 
+vmaxN = 1.33e-09 1.33e-09 1.33e-09 1.33e-09 1.33e-09 1.33e-09     !vmaxN: N-uptake rate measured at umax
+vmaxP = 4.07e-10 4.07e-10 4.07e-10 4.07e-10 4.07e-10 4.07e-10     !vmaxP: P-uptake rate measured at umax
+vmaxSi = 1.33e-09 1.33e-09 1.33e-09 1.33e-09 1.33e-09 1.33e-09    !vmaxSi: Si-uptake rate measured at umax
+aN = 1. 1. 1. 1. 1. 1.               !aN: coefficient for non-limiting nutrient
+volcell = 513. 513. 513. 513. 513. 513.           !volcell: phytoplankton volume/cell
+Qc = 4.54e-08 4.54e-08 4.54e-08 4.54e-08 4.54e-08 4.54e-08        !Qc: phytoplankton carbon/cell
+Athresh = 7e+07 7e+07 7e+07 7e+07 7e+07 7e+07   !Athresh: Phytoplankton threshold for grazing, is multiplied by VOLcell 
+sinkA = 0.29 0.29 0.29 0.29 0.29 0.29 		      !sinkA: sinking rate of phytoplankton cells
+mA = 0.11 0.11 0.11 0.11 0.11 0.11 		      !mA: mortality coefficient 
+A_wt = 1. 1. 1. 1. 1. 1.                    !A_wt: Relative proportion of total chlA for initializing phytoplankton
 !------------------------------------------------------------------------
 /
 
@@ -105,7 +105,7 @@ A_wt = 1.                           !A_wt: Relative proportion of total chlA for
 !Zooplankton - up to 2 types 
 !------------------------------------------------------------------------
 !namelist /zooplankton/ ediblevector,Zeffic,Zslop,Zvolcell,ZQc,ZQn,ZQp,ZKa,Zrespg,Zrespb,Zumax,Zm 
-ediblevector = 0.4 0.4 !edibility vector for Z1(A1), Z2(A2)
+ediblevector = 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 0.5 !edibility vector for Z1(A1), Z2(A2)
 Zeffic = 0.4 0.4		!Zeffic: assimilation efficiency as a fraction of ingestion
 Zslop = 0.25 .0		        !Zslop: proportion of grazed phytoplankton lost to sloppy feeding
 Zvolcell = 2.98e+07 6.74e5      !Zvolcell: zooplankton volume/individual
@@ -171,9 +171,9 @@ KG_bot = 92000.	        !KG_bot, turnover rate for k=20 if Instant Remineralizat
 !namelist /init/ A_init,Qn_init,Qp_init,Z_init,NO3_init,NH4_init,PO4_init,DIC_init,O2_init,&
 ! OM1_A_init,OM2_A_init,OM1_Z_init,OM2_Z_init,OM1_R_init,OM2_R_init,CDOM_init,Si_init,OM1_BC_init,OM2_BC_init,ALK_init,Tr_init
 !Initialize ff for testing
-A_init = 6.e7                   !A
-Qn_init = 0.30649887E-8         !Qn
-Qp_init = 0.19438481E-9         !Qp
+A_init = 6.e7 6.e7 6.e7 6.e7 6.e7 6.e7                   !A
+Qn_init = 0.306E-8 0.306e-8 0.306e-8 0.306e-8 0.306e-8 0.306e-8         !Qn
+Qp_init = 0.194E-9 0.194e-9 0.194e-9 0.194e-9 0.194e-9 0.194e-9         !Qp
 Z_init = 150.0508 1505.0508     !Z1 Z2
 NO3_init = 5.              !NO3 
 NH4_init = 1.              !NH4 
