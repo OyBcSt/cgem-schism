@@ -1,8 +1,9 @@
 # cgem-schism
 
-This repo is CGEM code that is being reformatted into a SCHISM module.  (Sorry, no actual SCHISM here!)
-
+This repo is CGEM code<sup>**</sup> that is being reformatted into a SCHISM module.  (Sorry, no actual SCHISM here!).
 It can be used to run and visualize CGEM equations in a 1D water column with no boundary conditions.
+
+<sup> ** *Original code base is what Cody emailed me December 7, 2023.*</sup>
 
 Right now:
 - Temperature and salinity are fixed, set in grid.nml
@@ -13,6 +14,8 @@ Right now:
 
 And this will never have:
 - transport.  That's SCHISM's job.
+
+
 
 This is not a production repo!  The purpose is for testing code changes.  The general workflow is to `git commit` locally and only do a `push` to GitHub when everything is working, then after the push, make necessary changes to the Python/Notebook.  That narrows the **OMG it's broken!** window a bit, but not completely.  If we're broken, please come back later. 
 
