@@ -66,3 +66,21 @@ def cgem_plotks(grid,which_var):
         label = which_var + " k=" + x
         ax.plot(time,result,label=label)
     ax.legend(loc='upper left')
+    
+    
+    def cgem_plotAs(grid,cgem):
+    print("Plotting Phytoplankton Groups")
+    results = subprocess.run(['./CGEM.exe','A'],stdout=subprocess.PIPE, text=True)
+    ar = results.stdout.splitlines()
+    result = np.array(list(map(str.strip,ar))).astype(float)
+    time = cgem_timearray(result,grid)
+    nospA = cgem.get('nosp').get('nospA')
+    fig, ax = plt.subplots(figsize=(30, 5))
+    for i in range (1,nospA+1):
+        x = 'A' + str(i)
+        results = subprocess.run(['./CGEM.exe',x],stdout=subprocess.PIPE, text=True)
+        ar = results.stdout.splitlines()
+        result = np.array(list(map(str.strip,ar))).astype(float)
+        label = x + " k=1"
+        ax.plot(time,result,label=label)
+    ax.legend(loc='upper left')
