@@ -68,7 +68,7 @@ def cgem_plotks(grid,which_var):
     ax.legend(loc='upper left')
     
     
-    def cgem_plotAs(grid,cgem):
+def cgem_plotAs(grid,cgem):
     print("Plotting Phytoplankton Groups")
     results = subprocess.run(['./CGEM.exe','A'],stdout=subprocess.PIPE, text=True)
     ar = results.stdout.splitlines()
