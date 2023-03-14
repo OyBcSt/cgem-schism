@@ -16,28 +16,36 @@ And this will never have:
 
 This is not a production repo!  The purpose is for testing code changes.  The general workflow is to `git commit` locally and only do a `push` to GitHub when everything is working, then after the push, make necessary changes to the Python/Notebook.  That narrows the **OMG it's broken!** window a bit, but not completely.  If we're broken, please come back later. 
 
-## Compile and run CGEM and make basic plots
+## How to use the Notebooks
+- Clicking on the "launch binder" icon will start a Notebook
+- Be patient, it might take some time.  It is starting up a VM (little computer in the cloud), installing all the necessary Python packages, and loading the data...and all for free!
+- Once you start one Notebook, you can click the folder icon on the left and access any other Notebook.  You don't have to launch a new Binder.  
+
+### Compile and run CGEM and make basic plots
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/lisalenorelowe/cgem-schism.git/HEAD?labpath=cgem.ipynb)
 
 
-## Run CGEM with different temperatures
+### Run CGEM with different temperatures
 Shows how to change an input with f90nml command, then rerun the code to check results.
 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/lisalenorelowe/cgem-schism.git/HEAD?labpath=cgem_testing.ipynb)
 
-## Check all variables after code changes
+### Check all variables after code changes
 This notebook prints each variable at each k layer
 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/lisalenorelowe/cgem-schism.git/HEAD?labpath=cgem_check.ipynb)
 
-## Check Phytoplankton dynamics with different parameters
+### Check Phytoplankton dynamics with different parameters
 This notebook shows how to change parameters and makes plots of each phytoplankton group at layer k=1.
 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/lisalenorelowe/cgem-schism.git/HEAD?labpath=cgem_A6.ipynb)
 
+## Changing things in Binder
+Using Binder, you can actually modify code/makefile and recompile, change the namelists, add to the Python library or the Notebooks...
+
+If you make changes, figure out some good parameters, or develop new Python code to look at stuff, SAVE your work locally! The Notebooks, nml files, cgem.py, everything new you created will disappear forever when Binder stops.
+
 ## That's it for now!
 If you happen to be browsing and see something odd, please open an Issue and let us know.  
-
-If you browse, and make changes, figure out some good parameters, or develop new Python code to look at stuff, SAVE your work locally! The Notebooks, nml files, cgem.py, everything new thing you created will disappear forever when Binder stops.
 
 Thanks!
