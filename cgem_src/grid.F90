@@ -39,6 +39,8 @@ real :: lat,lon
 real, allocatable :: d(:) ! depth cell bottom to surface
 real, allocatable :: d_sfc(:) ! depth cell center to surface 
 real, allocatable :: dz(:)   !Thickness of cell
+real, allocatable :: Vol(:)  !Volume of a cell
+real, allocatable :: area(:) ! Area of a cell
 !'tracers'
 real, allocatable :: S(:),T(:)
 
@@ -102,7 +104,10 @@ allocate(d_sfc(km),stat=ierr) ! depth cell center to surface
 if(ierr.ne.0) write(6,*) "error in allocating:d_sfc"
 allocate(dz(km),stat=ierr) !Thickness of cell
 if(ierr.ne.0) write(6,*) "error in allocating:dz"
-
+allocate(Vol(km),stat=ierr) !Volume of cell
+if(ierr.ne.0) write(6,*) "error in allocating:Vol"
+allocate(area(km),stat=ierr) !Area of cell
+if(ierr.ne.0) write(6,*) "error in allocating:area"
 !SCHISM 'tracers'
 allocate(S(km),stat=ierr) ! Salinity (psu) 
 if(ierr.ne.0) write(6,*) "error in allocating:S"
@@ -169,13 +174,18 @@ write(6,*) "lat,lon,Rad",lat,lon,Rad
   d = depth_in          !Depth of the water column
   dz = depth_in/km      !Thickness of a cell (they are the same for now)
 
+  !Define area
+  area = 1   !This is for testing sinking...SCHISM will give area and/or volume
+
   !Distance from surface to bottom of cell
   d(1) = dz(1)
+  Vol(1) = dz(1)*area(1)
   !Distance from surface to center of cell
   d_sfc(1) = dz(1)/2.   !First cell is half of total thickness of first cell
   do k=2,km   !Okay, this is stupid and only works for this case...fix later
    d(k) = d(k-1) + dz(k)
    d_sfc(k) = d_sfc(k-1) + dz(k)
+   Vol(k) = dz(k)*area(k)
   enddo
 
   !"Tracers"

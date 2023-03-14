@@ -11,7 +11,7 @@
 !Number of Phyto and Zooplankton species
 !------------------------------------------------------------------------
 !namelist /nosp/ nospA, nospZ
-nospA = 3
+nospA = 2
 nospZ = 2
 !------------------------------------------------------------------------
 /
@@ -37,7 +37,7 @@ Which_growth = 1	       !Which_growth: 1==minimum, 2==product formulation, 3==um
 !------------------------------------------------------------------------
 !optics - needed for the light model
 !------------------------------------------------------------------------
-!namelist /optics/ Kw,Kcdom,Kspm,Kchla,astar490,aw490,astarOMA,astarOMZ,astarOMR,astarOMBC,PARfac
+!namelist /optics/ Kw,Kcdom,Kspm,Kchla,astar490,aw490,astarOMA,astarOMZ,astarOMR,astarOMBC,PARfac,sinkCDOM
 Kw = 0.146            !Kw: AOP, light attenuation due to water
 Kcdom = 0.001         !Kcdom: AOP, light attenuation due to CDOM
 Kspm = 0.029          !Kspm: AOP, light attenuation due to SPM
@@ -49,6 +49,7 @@ astarOMZ = 0.01       !astarOMZ: OM_Z specific absorption at 490 nm
 astarOMR = 0.01       !astarOMR: OM_R specific absorption at 490 nm
 astarOMBC = 0.01      !astarOMBC: OM_BC specific absorption at 490 nm
 PARfac = 1.           !PARfac: Multiplies surface PAR
+sinkCDOM = 0.         !sinkCDOM: sinking rate of CDOM
 !------------------------------------------------------------------------
 /
 
@@ -57,10 +58,10 @@ PARfac = 1.           !PARfac: Multiplies surface PAR
 !temperature - phyto/zooplankton growth
 !--------------------------------------------------------------------------
 !namelist /temperature/ Tref,KTg1,KTg2,Ea
-Tref = 17. 17. 17. 22. 26.                        !Tref(nospA+nospZ): Optimum temperature for growth(C)
-KTg1 = 0.0035 0.0035 0.0035 0.0035 0.0035    !KTg1(nospA+nospZ): Effect of T below Topt(C^2)
-KTg2 = 0.001 0.001 0.001 0.001 0.001         !KTg2(nospA+nospZ): Effect of T above Topt(C^2)
-Ea   = 0.61 0.61 0.61 0.61 0.61              !Ea(nospA+nospZ): Slope of Arrhenius plot(eV)
+Tref = 17. 17. 22. 26.                          !Tref(nospA+nospZ): Optimum temperature for growth(C)
+KTg1 = 0.0035 0.0035 0.0035 0.0035  !KTg1(nospA+nospZ): Effect of T below Topt(C^2)
+KTg2 = 0.001 0.001 0.001 0.001          !KTg2(nospA+nospZ): Effect of T above Topt(C^2)
+Ea   = 0.61 0.61 0.61 0.61                  !Ea(nospA+nospZ): Slope of Arrhenius plot(eV)
 !------------------------------------------------------------------------
 /
 
@@ -70,32 +71,32 @@ Ea   = 0.61 0.61 0.61 0.61 0.61              !Ea(nospA+nospZ): Slope of Arrheniu
 !------------------------------------------------------------------------
 !namelist /phytoplankton/ umax,CChla,alpha,beta,respg,respb,
 !QminN,QminP,QmaxN,QmaxP,Kn,Kp,Ksi,KQn,KQp,nfQs,vmaxN,vmaxP,vmaxSi,aN,volcell,Qc,Athresh,sinkA,mA,A_wt
-umax = 1.12 1.12 1.12                 !umax: maximum growth rate
-CChla = 181.477 181.477 181.477       !CChla: Fixed C:Chla ratio
-alpha = 3.96e-16 3.96e-16 3.96e-16    !alpha: initial slope of the photosynthesis-irradiance relationship
-beta = 1.1e-18 1.1e-18 1.1e-18        !beta: photoinhibition constant
-respg = 0.1 0.1 0.1		      !respg: phytoplankton growth respiration coefficient
-respb = 0.02 0.02 0.02                !respb: phytoplankton basal respiration coefficient 
-QminN = 1.53e-10 1.53e-10 1.53e-10    !QminN: minimum N cell-quota
-QminP = 1.07e-11 1.07e-11 1.07e-11    !QminP: minimum P cell-quota
-QmaxN = 6.85e-9 6.85e-9 6.85e-9       !QmaxN: maximum N cell-quota
-QmaxP = 4.28e-10 4.28e-10 4.28e-10    !QmaxP: maximum P cell-quota
-Kn = 1.13 1.13 1.13		      !Kn: half-saturation constant for N 
-Kp = 0.51 0.51 0.51 		      !Kp: half-saturation constant for P
-Ksi = 1.13 1.13 1.13		      !Ksi: half-saturation constant for Si uptake 
-KQn = 5. 5. 5.	                      !KQn: Qn constant for Flynn nutrient dependent growth model
-KQp = 0.2 0.2 0.2	              !KQp: Qp constant for Flynn nutrient dependent growth model 
-nfQs = 1. 1. 1.	                      !nfQs: exponent for Geider nutrient uptake model 
-vmaxN = 1.33e-09 1.33e-09 1.33e-09    !vmaxN: N-uptake rate measured at umax
-vmaxP = 4.07e-10 4.07e-10 4.07e-10    !vmaxP: P-uptake rate measured at umax
-vmaxSi = 1.33e-09 1.33e-09 1.33e-09   !vmaxSi: Si-uptake rate measured at umax
-aN = 1. 1. 1.		              !aN: coefficient for non-limiting nutrient
-volcell = 513. 513. 513.	              !volcell: phytoplankton volume/cell
-Qc = 4.54e-08 4.54e-08 4.54e-08       !Qc: phytoplankton carbon/cell
-Athresh = 7e+07 7e+07 7e+07           !Athresh: Phytoplankton threshold for grazing, is multiplied by VOLcell 
-sinkA = 0.29 0.29 0.29		      !sinkA: sinking rate of phytoplankton cells
-mA = 0.11 0.11 0.11		      !mA: mortality coefficient 
-A_wt = 1. 1. 1.                          !A_wt: Relative proportion of total chlA for initializing phytoplankton
+umax = 1.12 1.12    !umax: maximum growth rate
+CChla = 181.477 181.477         !CChla: Fixed C:Chla ratio
+alpha = 3.96e-16 3.96e-16     !alpha: initial slope of the photosynthesis-irradiance relationship
+beta =  1.1e-18 1.1e-18         !beta: photoinhibition constant
+respg = 0.1 0.1 	      !respg: phytoplankton growth respiration coefficient
+respb = 0.02 0.02                 !respb: phytoplankton basal respiration coefficient 
+QminN = 1.53e-10 1.53e-10     !QminN: minimum N cell-quota
+QminP = 1.07e-11 1.07e-11     !QminP: minimum P cell-quota
+QmaxN = 6.85e-9 6.85e-9      !QmaxN: maximum N cell-quota
+QmaxP = 4.28e-10 4.28e-10    !QmaxP: maximum P cell-quota
+Kn = 1.13 1.13  !Kn: half-saturation constant for N 
+Kp = 0.51 0.51  !Kp: half-saturation constant for P
+Ksi = 1.13 1.13 !Ksi: half-saturation constant for Si uptake 
+KQn = 5. 5.                 !KQn: Qn constant for Flynn nutrient dependent growth model
+KQp = 0.2 0.2           !KQp: Qp constant for Flynn nutrient dependent growth model 
+nfQs = 1. 1.                 !nfQs: exponent for Geider nutrient uptake model 
+vmaxN = 1.33e-09 1.33e-09     !vmaxN: N-uptake rate measured at umax
+vmaxP = 4.07e-10 4.07e-10     !vmaxP: P-uptake rate measured at umax
+vmaxSi = 1.33e-09 1.33e-09    !vmaxSi: Si-uptake rate measured at umax
+aN = 1. 1.               !aN: coefficient for non-limiting nutrient
+volcell = 513. 513.           !volcell: phytoplankton volume/cell
+Qc = 4.54e-08 4.54e-08        !Qc: phytoplankton carbon/cell
+Athresh = 7e+07 7e+07   !Athresh: Phytoplankton threshold for grazing, is multiplied by VOLcell 
+sinkA = 0.29 0.29 		      !sinkA: sinking rate of phytoplankton cells
+mA = 0.11 0.11 		      !mA: mortality coefficient 
+A_wt = 1. 1.                    !A_wt: Relative proportion of total chlA for initializing phytoplankton
 !------------------------------------------------------------------------
 /
 
@@ -104,7 +105,7 @@ A_wt = 1. 1. 1.                          !A_wt: Relative proportion of total chl
 !Zooplankton - up to 2 types 
 !------------------------------------------------------------------------
 !namelist /zooplankton/ ediblevector,Zeffic,Zslop,Zvolcell,ZQc,ZQn,ZQp,ZKa,Zrespg,Zrespb,Zumax,Zm 
-ediblevector = 0.4 0.4 0.4 0.6 0.6 0.6 !edibility vector for Z1(A1,A2,A3), Z2(A1,A2,A3)
+ediblevector = 0.5 0.5 0.5 0.5 !edibility vector for Z1(A1), Z2(A2)
 Zeffic = 0.4 0.4		!Zeffic: assimilation efficiency as a fraction of ingestion
 Zslop = 0.25 .0		        !Zslop: proportion of grazed phytoplankton lost to sloppy feeding
 Zvolcell = 2.98e+07 6.74e5      !Zvolcell: zooplankton volume/individual
@@ -138,23 +139,21 @@ KO2 = 10.		!KO2: half-saturation concentration for O2 utilization
 KstarO2 = 10.		!KstarO2: O2 concentration that inhibits denitrification
 KNO3 = 5.		!KNO3: half-saturation concentration for NO3 used in denitrification
 pCO2 = 380.		!pCO2: atmospheric CO2 
-!--Initialize Stoichiometry
-stoich_x1A = 106         !stoich_x1A: C:P stoichiometry of OM1_A
-stoich_y1A = 16          !stoich_y1A: N:P stoichiometry of OM1_A
-stoich_x2A = 106         !stoich_x2A: C:P stoichiometry of OM2_A
-stoich_y2A = 16          !stoich_y2A: N:P stoichiometry of OM2_A
-stoich_x1Z = 106         !stoich_x1Z: C:P stoichiometry of OM1_Z
-stoich_y1Z = 16          !stoich_y1Z: N:P stoichiometry of OM1_Z
-stoich_x2Z = 106         !stoich_x2Z: C:P stoichiometry of OM2_Z
-stoich_y2Z = 16          !stoich_y2Z: N:P stoichiometry of OM2_Z
-stoich_x1R = 51.		!stoich_x1R:  C:P stoichiometry of OM1_R
-stoich_y1R = 4.5        !stoich_y1R:  N:P stoichiometry of OM1_R
-stoich_x2R = 700.	!stoich_x2R:  C:P stoichiometry of OM2_R
-stoich_y2R = 50.		!stoich_y2R:  N:P stoichiometry of OM2_R
-stoich_x1BC = 106.       !stoich_x1BC: C:P stoichiometry of OM1_BC
-stoich_y1BC = 16.        !stoich_y1BC: N:P stoichiometry of OM1_BC
-stoich_x2BC = 106.       !stoich_x2BC: C:P stoichiometry of OM2_BC
-stoich_y2BC = 16.        !stoich_y2BC: N:P stoichiometry of OM2_BC
+!--Initialize stoichiometry:  CNP to P ratios (P:P = 1)
+stoich_OM1A = 106. 16.  !stoich_OM1A: initial ratios C:P N:P
+stoich_OM2A = 106. 16.  !stoich_OM2A: initial ratios C:P N:P
+stoich_OM1Z = 106. 16.  !stoich_OM1Z: initial ratios C:P N:P
+stoich_OM2Z = 106. 16.  !stoich_OM2Z: initial ratios C:P N:P 
+stoich_x1R = 51.        !stoich_x1R: initial ratio  C:P
+stoich_y1R = 4.5        !stoich_y1R: initial ratio  N:P
+stoich_x2R = 700.       !stoich_x2R: initial ratio  C:P
+stoich_y2R = 50.        !stoich_y2R: initial ratio  N:P
+stoich_x1BC= 106.       !stoich_x1BC:initial ratio  C:P
+stoich_y1BC= 16.        !stoich_y1BC:initial ratio  N:P
+stoich_x2BC= 106.       !stoich_x2BC:initial ratio  C:P
+stoich_y2BC= 16.        !stoich_y2BC:initial ratio  N:P
+
+!--OM sinking rates
 sinkOM1_A = 10.		!sinkOM1_A:  sinking rate
 sinkOM2_A = 0.		!sinkOM2_A:  sinking rate
 sinkOM1_Z = 10.		!sinkOM1_Z:  sinking rate
@@ -162,36 +161,35 @@ sinkOM2_Z = 0.		!sinkOM2_Z:  sinking rate
 sinkOM1_R = 10.		!sinkOM1_R:  sinking rate
 sinkOM2_R = 0.		!sinkOM2_R:  sinking rate
 sinkOM1_BC = 10.         !sinkOM1_BC: sinking rate
-sinkOM1_BC = 0.          !sinkOM2_BC: sinking rate
+sinkOM2_BC = 0.          !sinkOM2_BC: sinking rate
 KGcdom = 0.01		!KGcdom: decay rate of CDOM, 1/day
 CF_SPM = 0.018		!CF_SPM: conversion factor for river OM to river SPM
 KG_bot = 92000.	        !KG_bot, turnover rate for k=20 if Instant Remineralization is used (see Which_fluxes above)
 /
 
 &init
-!namelist /init/ A_init,Qn_init,Qp_init,Z1_init,Z2_init,NO3_init,NH4_init,PO4_init,DIC_init,O2_init,&
+!namelist /init/ A_init,Qn_init,Qp_init,Z_init,NO3_init,NH4_init,PO4_init,DIC_init,O2_init,&
 ! OM1_A_init,OM2_A_init,OM1_Z_init,OM2_Z_init,OM1_R_init,OM2_R_init,CDOM_init,Si_init,OM1_BC_init,OM2_BC_init,ALK_init,Tr_init
 !Initialize ff for testing
-A_init = 6.e7      !A
-Qn_init = 0.30649887E-8           !Qn
-Qp_init = 0.19438481E-9           !Qp
-Z1_init = 150.0508                !Z1 
-Z2_init = 1505.0508               !Z2
-NO3_init = 5.              !NO3 
+A_init = 6.e7 6.e7                   !A
+Qn_init = 0.306E-8 0.306E-8         !Qn
+Qp_init = 0.194E-9 0.194E-9         !Qp
+Z_init = 150.0508 1505.0508     !Z1 Z2
+NO3_init = 5.               !NO3 
 NH4_init = 1.              !NH4 
-PO4_init = 2.              !PO4 
+PO4_init = 2.               !PO4 
 DIC_init = 2134            !DIC 
 O2_init = 172.            !O2 
-OM1_A_init = 0. !0.40379810                  !OM1_A 
-OM2_A_init = 0. !8.8202314                   !OM2_A 
-OM1_Z_init = 0. !78.162582                   !OM1_fp 
-OM2_Z_init = 0. !225.37767                   !OM2_fp 
-OM1_R_init = 0.0000000               !OM1_rp 
-OM2_R_init = 0.0000000               !OM2_rp 
+OM1_A_init = 0.                !OM1_A 
+OM2_A_init = 0.                !OM2_A 
+OM1_Z_init = 0.                !OM1_fp 
+OM2_Z_init = 0.                !OM2_fp 
+OM1_R_init = 0.               !OM1_rp 
+OM2_R_init = 0.               !OM2_rp 
 CDOM_init = 2.              !CDOM 
 Si_init = 15.             !Si 
-OM1_BC_init = 0. !157.09488                   !OM1_bc 
-OM2_BC_init = 0. !333.65701                   !OM2_bc
+OM1_BC_init = 0.                    !OM1_bc 
+OM2_BC_init = 0.                    !OM2_bc
 ALK_init = 2134               !ALK 
 Tr_init = 1                  !Tr
 /

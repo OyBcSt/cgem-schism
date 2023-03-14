@@ -24,10 +24,14 @@ real, allocatable :: aDailyRad(:)  ! Previous day's irradiance per layer
 real, allocatable :: aRadSum(:) 
 
 !Stoichiometry
-real, dimension(:), allocatable :: s_x1A,s_x2A,s_y1A,s_y2A
-real, dimension(:), allocatable :: s_z1A,s_z2A
-real, dimension(:), allocatable :: s_x1Z,s_x2Z,s_y1Z,s_y2Z
-real, dimension(:), allocatable :: s_z1Z,s_z2Z
+real, dimension(:), allocatable :: s_x1A,s_y1A,s_z1A
+real, dimension(:), allocatable :: s_x2A,s_y2A,s_z2A
+real, dimension(:), allocatable :: s_x1Z,s_y1Z,s_z1Z
+real, dimension(:), allocatable :: s_x2Z,s_y2Z,s_z2Z
+real :: stoich_x1R,stoich_y1R,stoich_z1R
+real :: stoich_x2R,stoich_y2R,stoich_z2R
+real :: stoich_x1BC,stoich_y1BC,stoich_z1BC
+real :: stoich_x2BC,stoich_y2BC,stoich_z2BC
 
 !Module Which_Flux
 ! =========================================================
@@ -186,6 +190,7 @@ real astarOMZ
 real astarOMR
 real astarOMBC
 real PARfac
+real sinkCDOM
 !---Phytoplankton 
 real, allocatable :: ediblevector(:,:)
 real, allocatable :: umax(:)
@@ -238,18 +243,6 @@ real KO2
 real KstarO2
 real KNO3
 real pCO2
-real stoich_x1R
-real stoich_y1R
-real stoich_z1R
-real stoich_x2R
-real stoich_y2R
-real stoich_z2R
-real stoich_x1BC
-real stoich_y1BC
-real stoich_z1BC
-real stoich_x2BC
-real stoich_y2BC
-real stoich_z2BC
 real KGcdom
 real CF_SPM
 !----Other including Boundary Conditions------------
@@ -265,11 +258,13 @@ real, allocatable :: alphad(:) ! Initial slope of photosynthesis-irradiance curv
 real, allocatable :: betad(:)  ! Photoinhibition constant / Vmax
 
 !Initialize variables in cgem_init from cgem_read
-  real, private :: stoich_x1A_init,stoich_y1A_init,stoich_x2A_init,stoich_y2A_init
-  real, private :: stoich_x1Z_init,stoich_y1Z_init,stoich_x2Z_init,stoich_y2Z_init 
-  real, private :: sinkOM1_A,sinkOM2_A,sinkOM1_Z,sinkOM2_Z,sinkOM1_R,sinkOM2_R,sinkOM1_BC,sinkOM2_BC
   real, dimension(:), allocatable, private :: sinkA
-  real, private :: A_init,Qn_init,Qp_init,Z1_init,Z2_init,NO3_init,NH4_init,PO4_init,DIC_init,O2_init
+  real, dimension(:), allocatable, private :: A_init,Qn_init,Qp_init
+  real, dimension(:), allocatable, private :: Z_init
+  real, dimension(2), private :: stoich_OM1A,stoich_OM2A,stoich_OM1Z,stoich_OM2Z 
+  real, dimension(2), private :: stoich_OM1R,stoich_OM2R,stoich_OM1BC,stoich_OM2BC 
+  real, private :: sinkOM1_A,sinkOM2_A,sinkOM1_Z,sinkOM2_Z,sinkOM1_R,sinkOM2_R,sinkOM1_BC,sinkOM2_BC
+  real, private :: NO3_init,NH4_init,PO4_init,DIC_init,O2_init
   real, private :: OM1_A_init,OM2_A_init,OM1_Z_init,OM2_Z_init,OM1_R_init,OM2_R_init,CDOM_init
   real, private :: Si_init,OM1_BC_init,OM2_BC_init,ALK_init,Tr_init
 
@@ -332,15 +327,16 @@ subroutine cgem_read
   !http://degenerateconic.com/namelist-error-checking.html
   namelist /switches/ Which_fluxes,Which_temperature,Which_uptake,Which_quota,Which_irradiance,&
     Which_chlaC,Which_photosynthesis,Which_growth
-  namelist /optics/ Kw,Kcdom,Kspm,Kchla,astar490,aw490,astarOMA,astarOMZ,astarOMR,astarOMBC,PARfac
+  namelist /optics/ Kw,Kcdom,Kspm,Kchla,astar490,aw490,astarOMA,astarOMZ,astarOMR,astarOMBC,PARfac,sinkCDOM
   namelist /temperature/ Tref,KTg1,KTg2,Ea
   namelist /phytoplankton/ umax,CChla,alpha,beta,respg,respb,QminN,QminP,QmaxN,QmaxP,Kn,Kp,Ksi,KQn,&
      KQp,nfQs,vmaxN,vmaxP,vmaxSi,aN,volcell,Qc,Athresh,sinkA,mA,A_wt
   namelist /zooplankton/ ediblevector,Zeffic,Zslop,Zvolcell,ZQc,ZQn,ZQp,ZKa,Zrespg,Zrespb,Zumax,Zm
   namelist /OM/ KG1,KG2,KG1_R,KG2_R,KG1_BC,KG2_BC,KNH4,nitmax,KO2,KstarO2,KNO3,pCO2,&
-     stoich_x1R,stoich_y1R,stoich_x2R,stoich_y2R,stoich_x1BC,stoich_y1BC,stoich_x2BC,stoich_y2BC,&
-     sinkOM1_A,sinkOM2_A,sinkOM1_Z,sinkOM2_Z,sinkOM1_R,sinkOM2_R,sinkOM1_BC,sinkOM2_BC,KGcdom,CF_SPM,KG_bot
-  namelist /init/ A_init,Qn_init,Qp_init,Z1_init,Z2_init,NO3_init,NH4_init,PO4_init,DIC_init,O2_init,&
+     stoich_OM1A,stoich_OM2A,stoich_OM1Z,stoich_OM2Z,stoich_x1R,stoich_y1R,stoich_x2R,stoich_y2R,&
+     stoich_x1BC,stoich_y1BC,stoich_x2BC,stoich_y2BC,sinkOM1_A,sinkOM2_A,sinkOM1_Z,sinkOM2_Z,sinkOM1_R,&
+     sinkOM2_R,sinkOM1_BC,sinkOM2_BC,KGcdom,CF_SPM,KG_bot
+  namelist /init/ A_init,Qn_init,Qp_init,Z_init,NO3_init,NH4_init,PO4_init,DIC_init,O2_init,&
      OM1_A_init,OM2_A_init,OM1_Z_init,OM2_Z_init,OM1_R_init,OM2_R_init,CDOM_init,&
      Si_init,OM1_BC_init,OM2_BC_init,ALK_init,Tr_init
 
@@ -682,6 +678,21 @@ if(ierr.ne.0) write(6,*) "error in allocating:stoichiometry"
   allocate(sinkA(nospA),stat=ierr)
   if(ierr.ne.0) write(6,*) "error in allocating:sinkA"
 
+!Flux
+  allocate(A_init(nospA),stat=ierr)
+  if(ierr.ne.0) write(6,*) "error in allocating:A_init"
+
+!Flux
+  allocate(Qn_init(nospA),stat=ierr)
+  if(ierr.ne.0) write(6,*) "error in allocating:Qn_init"
+
+!Flux
+  allocate(Qp_init(nospA),stat=ierr)
+  if(ierr.ne.0) write(6,*) "error in allocating:Qp_init"
+
+!Flux
+  allocate(Z_init(nospZ),stat=ierr)
+  if(ierr.ne.0) write(6,*) "error in allocating:Z_init"
 
 #ifdef DEBUG
 write(6,*) "End cgem_allocate"
@@ -720,21 +731,26 @@ do isp=1,nospA
 enddo
 
 
-!namelist /init/ A_init,Qn_init,Qp_init,Z1_init,Z2_init,NO3_init,NH4_init,PO4_init,DIC_init,O2_init,&
+!namelist /init/ A_init,Qn_init,Qp_init,Z_init,NO3_init,NH4_init,PO4_init,DIC_init,O2_init,&
 ! OM1_A_init,OM2_A_init,OM1_Z_init,OM2_Z_init,OM1_R_init,OM2_R_init,CDOM_init,Si_init,OM1_BC_init,OM2_BC_init,ALK_init,Tr_init
 !Initialize ff for testing
-ff(:,iA(1)) = A_init !6.e7      !A
-ff(:,iQn(1)) = Qn_init !0.30649887E-8           !Qn
-ff(:,iQp(1)) = Qp_init !0.19438481E-9           !Qp
-ff(:,iZ(1)) = Z1_init !150.0508                !Z1 
-ff(:,iZ(2)) = Z2_init !1505.0508               !Z2
-ff(:,iNO3) = NO3_init !5.              !NO3 
-ff(:,iNH4) = NH4_init !1.              !NH4 
-ff(:,iPO4) = PO4_init !2.              !PO4 
-ff(:,iDIC) = DIC_init !2134            !DIC 
-ff(:,iO2) = O2_init !172.            !O2 
-ff(:,iOM1_A) = OM1_A_init !0. !0.40379810                  !OM1_A 
-ff(:,iOM2_A) = OM2_A_init !0. !8.8202314                   !OM2_A 
+do isp=1,nospA
+ ff(:,iA(isp))  = A_init(isp)
+ ff(:,iQn(isp)) = Qn_init(isp)
+ ff(:,iQp(isp)) = Qp_init(isp)
+!write(6,*) "Initializing A,isp=",isp,A_init(isp)
+enddo
+do isp=1,nospZ
+ ff(:,iZ(isp)) = Z_init(isp)
+! write(6,*) "Initializing Z,isp=",isp,Z_init(isp)  
+enddo
+ff(:,iNO3) = NO3_init
+ff(:,iNH4) = NH4_init 
+ff(:,iPO4) = PO4_init 
+ff(:,iDIC) = DIC_init 
+ff(:,iO2) = O2_init 
+ff(:,iOM1_A) = OM1_A_init
+ff(:,iOM2_A) = OM2_A_init
 ff(:,iOM1_Z) = OM1_Z_init !0. !78.162582                   !OM1_fp 
 ff(:,iOM2_Z) = OM2_Z_init !0. !225.37767                   !OM2_fp 
 ff(:,iOM1_R) = OM1_R_init !0.0000000               !OM1_rp 
@@ -746,23 +762,38 @@ ff(:,iOM2_BC) = OM2_BC_init !0. !333.65701                   !OM2_bc
 ff(:,iALK) = ALK_init !2134               !ALK 
 ff(:,iTr) = Tr_init !1                  !Tr
 
-s_x1A=1.
-s_x2A=1.
-s_y1A=1.
-s_y2A=1.
-s_z1A=1.
-s_z2A=1.
-
-s_x1Z=1.
-s_x2Z=1.
-s_y1Z=1.
-s_y2Z=1.
-s_z1Z=1.
-s_z2Z=1.
+#ifdef DEBUG
+write(6,*) "ff(1,iOM2_R)",ff(:,iOM2_R)
+#endif
 
 !Stoichiometry of x,y is read in, but Z assumed to be 1
+!OM1A
+s_x1A = stoich_OM1A(1)
+s_y1A = stoich_OM1A(2)
+s_z1A = 1.
+#ifdef DEBUG
+write(6,*) "s_x1A",stoich_OM1A(1)
+write(6,*) "s_y1A",stoich_OM1A(2)
+#endif
+
+
+!OM2A
+s_x2A = stoich_OM2A(1)
+s_y2A = stoich_OM2A(2)
+s_z2A = 1.
+!OM1Z
+s_x1Z = stoich_OM1Z(1)
+s_y1Z = stoich_OM1Z(2)
+s_z1Z = 1.
+!OM2Z
+s_x2Z = stoich_OM2Z(1)
+s_y2Z = stoich_OM2Z(2)
+s_z2Z = 1.
+!Schiometry of x,y is read in, but Z assumed to be 1
+!OM1Z
 stoich_z1R = 1.
 stoich_z2R = 1.
+!OM2BC
 stoich_z1BC = 1.
 stoich_z2BC = 1.
 
@@ -770,6 +801,41 @@ Esed = -9999.
 CBODW = -9999.
 pH = -9999.
 
+#ifdef DEBUG
+write(6,*) "After Esed",s_z2Z
+#endif
+
+ws = 0.
+ws(iA(:))=sinkA(:)
+
+#ifdef DEBUG
+write(6,*) "ws(ia)",ws(iA(:))
+#endif
+
+ws(iCDOM) =  sinkCDOM
+ws(iOM1_A) = sinkOM1_A
+ws(iOM2_A) = sinkOM2_A
+ws(iOM1_Z) = sinkOM1_Z
+ws(iOM2_Z) = sinkOM2_Z
+ws(iOM1_R) = sinkOM1_R
+ws(iOM2_R) = sinkOM2_R
+ws(iOM1_BC) = sinkOM1_BC
+ws(iOM2_BC) = sinkOM2_BC
+#ifdef DEBUG
+write(6,*) "ws(iCDOM) =  sinkCDOM",ws(iCDOM)
+write(6,*) "ws(iOM1_A) = sinkOM1_A",ws(iOM1_A)
+write(6,*) "ws(iOM2_A) = sinkOM2_A",ws(iOM2_A)
+write(6,*) "ws(iOM1_Z) = sinkOM1_Z",ws(iOM1_Z)
+write(6,*) "ws(iOM2_Z) = sinkOM2_Z",ws(iOM2_Z)
+write(6,*) "ws(iOM1_R) = sinkOM1_R",ws(iOM1_R)
+write(6,*) "ws(iOM2_R) = sinkOM2_R",ws(iOM2_R)
+write(6,*) "ws(iOM1_BC) = sinkOM1_BC",ws(iOM1_BC)
+write(6,*) "ws(iOM2_BC) = sinkOM2_BC",ws(iOM2_BC)
+write(6,*) "ws",ws
+#endif
+
+!Convert to negative per seconds
+ws = -ws / 86400.
 
 #ifdef DEBUG
 write(6,*) "ff(1)",ff(:,1)

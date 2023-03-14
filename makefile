@@ -35,7 +35,7 @@ ifeq "$(ERR)" "0"
   F77 = ifort
   FC = ifort
   INC =   #-I.  #-I/usr/local/usrapps/ncdfutil/cmaq-libs/intel2018.4-ncdf4/netcdf/include
-  #DFLAGS = -g -warn -debug all -g -check all -ftrapuv -DDEBUG #-mcmodel=medium -shared-intel
+  DFLAGS = #-g -warn -debug all -g -check all -ftrapuv -DDEBUG -DDEBUG2 -DDEBUG_PAR #-mcmodel=medium -shared-intel
   include cgem_src/src_files
 else
   F90 = gfortran
@@ -44,7 +44,7 @@ else
   INC =
   LIBS =
   DMFLAGS = #-fimplicit-none -fbacktrace
-  DFLAGS = #-Wall -Wextra -pedantic -fimplicit-none -fbacktrace #-DDEBUG -DDEBUG_PAR #-D_CGEM -DRDEBUG -DDEBUG 
+  DFLAGS = #-Wall -Wextra -pedantic -fimplicit-none -fbacktrace -DDEBUG #-DDEBUG_PAR #-D_CGEM -DRDEBUG -DDEBUG 
   CFLAGS = 
   include cgem_src/src_files
 endif
