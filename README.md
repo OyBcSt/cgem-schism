@@ -25,13 +25,9 @@ This is not a production repo!  The purpose is for testing code changes.  The ge
 - Once you start one Notebook, you can click the folder icon on the left and access any other Notebook.  You don't have to launch a new Binder.  
 
 ### Compile and run CGEM and make basic plots
+A basic tour of CGEM Python interface: compiling and running code, changing the inputs, calculating stuff, and making plots.
+
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/lisalenorelowe/cgem-schism.git/HEAD?labpath=cgem.ipynb)
-
-
-### Run CGEM with different temperatures
-Shows how to change an input with f90nml command, then rerun the code to check results.
-
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/lisalenorelowe/cgem-schism.git/HEAD?labpath=cgem_testing.ipynb)
 
 ### Check all variables after code changes
 This notebook prints each variable at each k layer
@@ -43,8 +39,8 @@ This notebook shows how to change parameters and makes plots of each phytoplankt
 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/lisalenorelowe/cgem-schism.git/HEAD?labpath=cgem_A6.ipynb)
 
-## Changing things in Binder
-Using Binder, you can actually modify code/makefile and recompile, change the namelists, add to the Python library or the Notebooks...
+## Remember to save locally!
+Using Binder, you can actually modify the code or makefile and recompile, change the namelists, add to the Python library or the Notebooks...
 
 If you make changes, figure out some good parameters, or develop new Python code to look at stuff, SAVE your work locally! The Notebooks, nml files, cgem.py, everything new you created will disappear forever when Binder stops.
 
