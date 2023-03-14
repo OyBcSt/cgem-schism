@@ -7,8 +7,8 @@ It can be used to run and visualize CGEM equations in a 1D water column with no 
 Right now:
 - Temperature and salinity are fixed, set in grid.nml
 - RAD calculated by solar zenith angle (lat/lon/time)
-- Cloern is there but I didn't test it (check DailyRad_init)
-- no fluxes tested (yet)
+- Cloern is there but I didn't test it (need to check DailyRad_init)
+- no fluxes implemented yet
 - no sinking yet...(this used to be handled in the Adv3D routine)
 
 And this will never have:
