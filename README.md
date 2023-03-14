@@ -26,7 +26,7 @@ This is not a production repo!  The purpose is for testing code changes.  The ge
 
 ## The Notebooks
 
-### Compile and run CGEM and make basic plots
+### CGEM the Notebook - an introduction
 A basic tour of CGEM Python interface: compiling and running code, changing the inputs, calculating stuff, and making plots.
 
 [![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/lisalenorelowe/cgem-schism.git/HEAD?labpath=cgem.ipynb)
