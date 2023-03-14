@@ -9,7 +9,7 @@ Right now:
 - RAD calculated by solar zenith angle (lat/lon/time)
 - Cloern is there but I didn't test it (check DailyRad_init)
 - no fluxes tested (yet)
-- no sinking yet...(this used to be handled in the Vmixing routine)
+- no sinking yet...(this used to be handled in the Adv3D routine)
 
 And this will never have:
 - transport.  That's SCHISM's job.
