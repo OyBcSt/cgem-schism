@@ -55,3 +55,6 @@ If you make changes, figure out some good parameters, or develop new Python code
 If you happen to be browsing and see something odd, please open an Issue and let us know.  
 
 Thanks!
+
+## Acknowledgements
+This effort is funded by the National Oceanic and Atmospheric Administration's RESTORE Science Program under award NA19NOS4510194 to North Carolina State University.
