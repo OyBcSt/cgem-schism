@@ -17,7 +17,9 @@ Right now:
 And this will never have:
 - transport.  That's SCHISM's job.
 
-This is not a production repo!  The purpose is for testing code changes.  The general workflow is to `git commit` locally and only do a `push` to GitHub when everything is working, then after the push, make necessary changes to the Python/Notebook.  That narrows the **OMG it's broken!** window a bit, but not completely.  If we're broken, please come back later. 
+This is not a production repo!  The purpose is for testing code changes.  The general workflow is to `git commit` locally and only do a `push` to GitHub when everything is working, then after the push, make necessary changes to the Python/Notebook.  That narrows the **OMG it's broken!** window a bit, but not completely.
+
+The Binder buttons below are attached to **tagged releases**.  When using a tagged version, all Notebooks are expected to run with out errors.  We hope that's the case.
 
 ## How to use the Notebooks
 - Clicking on the "launch binder" icon will start a Notebook
