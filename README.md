@@ -1,4 +1,6 @@
-# cgem-schism
+# CGEM - Coastal General Ecology Model 
+
+CGEM (Coastal General Ecology Model) is a biogeochemical, lower trophic level ecosystem model that describes biogeochemical processes regulating carbon, oxygen, nutrients, phytoplankton, and zooplankton. 
 
 ## About
 
