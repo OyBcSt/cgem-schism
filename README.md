@@ -33,22 +33,22 @@ The Binder buttons below are attached to **tagged releases**.  When using a tagg
 ### CGEM the Notebook - an introduction
 A basic tour of CGEM Python interface: compiling and running code, changing the inputs, calculating stuff, and making plots.
 
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/lisalenorelowe/cgem-schism/v0.0?labpath=cgem.ipynb)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/OyBcSt/cgem-schism/v0.0?labpath=cgem.ipynb)
 
 ### Check temperature dependence 
 Plots Phytoplankton growth at two different temperatures
 
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/lisalenorelowe/cgem-schism.git/v0.0?labpath=cgem.ipynb)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/OyBcSt/cgem-schism.git/v0.0?labpath=cgem.ipynb)
 
 ### Check all variables after code changes
 This notebook prints each variable at each k layer
 
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/lisalenorelowe/cgem-schism.git/v0.0?labpath=cgem_check.ipynb)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/OyBcSt/cgem-schism.git/v0.0?labpath=cgem_check.ipynb)
 
 ### Check Phytoplankton dynamics with different parameters
 This notebook shows how to change parameters and makes plots of each phytoplankton group at layer k=1.
 
-[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/lisalenorelowe/cgem-schism.git/v0.0?labpath=cgem_A6.ipynb)
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/OyBcSt/cgem-schism.git/v0.0?labpath=cgem_A6.ipynb)
 
 ## Remember to save locally!
 Using Binder, you can actually modify the code or makefile and recompile, change the namelists, add to the Python library or the Notebooks...
