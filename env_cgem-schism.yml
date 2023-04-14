@@ -1,0 +1,10 @@
+name: cgem 
+channels:
+  - conda-forge
+dependencies:
+  - f90nml
+  - numpy 
+  - gfortran
+  - pandas
+  - matplotlib
+  - notebook 
