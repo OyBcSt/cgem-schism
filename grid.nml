@@ -11,7 +11,7 @@
 !   iHrE,iMinE,iSecE,dT,dT_out,lon_in,lat_in,depth_in,Sal_init,Temp_init
 !-dims
 nea = 1    !Number of elements
-km = 5     !Number of layers
+km = 1     !Number of layers
 !-time
 iYrS = 2006       !- starting time iYrS
 iMonS = 1         !- starting time iMonS
