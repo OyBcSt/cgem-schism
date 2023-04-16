@@ -10,8 +10,10 @@ implicit none
 save
 
 !Grid parameters
-integer :: nea = 1
 integer :: km
+
+!Although nospA, nospZ seem like 'cgem' parameters, they are needed to allocate
+!schism arrays  (to calculate number of tracers)
 
 !Simulation parameters
 integer :: START_SECONDS,END_SECONDS, nstep
@@ -22,9 +24,6 @@ integer iYrE,iMonE,iDayE,iHrE,iMinE,iSecE
 integer dT
 
 !Constants
-real, parameter :: SDay = 86400.0  ! # of sec in 24 hr day
-integer :: StepsPerDay                   ! Time steps per day
-real :: dTd                           ! Timestep in days 
 integer :: dT_out !Output timestep
 integer iout
 !-output
@@ -44,21 +43,8 @@ real, allocatable :: area(:) ! Area of a cell
 !'tracers'
 real, allocatable :: S(:),T(:)
 
-public :: grid_setup
-
-private :: grid_read, grid_allocate, grid_init
 
 contains
-
-subroutine grid_setup
-
-  real :: S_init,T_init,depth_in,lat_in,lon_in
-  call grid_read(S_init,T_init,depth_in,lat_in,lon_in)
-  call grid_allocate
-  call grid_init(S_init,T_init,depth_in,lat_in,lon_in)
-
-return
-end subroutine
 
 
 subroutine grid_read(Sal_init,Temp_init,depth_in,lat_in,lon_in)
@@ -67,7 +53,7 @@ subroutine grid_read(Sal_init,Temp_init,depth_in,lat_in,lon_in)
   integer           :: istat,iunit
   character(len=1000) :: line
   !http://degenerateconic.com/namelist-error-checking.html
-  namelist /hydro/ nea,km,iYrS,iMonS,iDayS,iHrS,iMinS,iSecS,iYrE,iMonE,iDayE,&
+  namelist /hydro/ km,iYrS,iMonS,iDayS,iHrS,iMinS,iSecS,iYrE,iMonE,iDayE,&
    iHrE,iMinE,iSecE,dT,dT_out,lon_in,lat_in,depth_in,Sal_init,Temp_init
 
 #ifdef DEBUG
@@ -128,10 +114,6 @@ subroutine grid_init(S_init,T_init,depth_in,lat_in,lon_in)
   real, intent(in) :: S_init,T_init,depth_in
   real, intent(in) :: lat_in,lon_in
 
-  !Initialize Time stuff
-  dTd = dT/SDay         ! Timestep length in units of days
-  !StepsPerDay = SDay / dT ! Time steps in a day
-  StepsPerDay = 86400 / dT
 
   ! Compute starting time of run in seconds since Model_dim::iYrS:
   START_SECONDS = &

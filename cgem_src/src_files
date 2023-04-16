@@ -6,7 +6,9 @@ OBJ  =  \
 	date_time.o\
 	calc_solar_zenith.o\
         grid.o\
+	grid_setup.o\
 	cgem.o\
+	cgem_setup.o\
         cgem_growth.o\
         cgem_misc.o\
 	cgem_utils.o\

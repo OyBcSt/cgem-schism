@@ -1,6 +1,6 @@
 program main
 
-use cgem, only:dT,nstep
+use grid, only:dT,nstep
 use cgem_misc
 
 implicit none
@@ -13,7 +13,7 @@ integer         :: ivar,ivark  !Which variable to print
 call grid_setup
 
 !Initialize cgem
-call cgem_setup
+call cgem_setup(22)
 
 ! Compute starting time of run in seconds since Model_dim::iYrS:
 TC_8 = TOTAL_SECONDS( iYrS, iYrS, iMonS, iDayS, iHrS, iMinS, iSecS )
@@ -31,6 +31,9 @@ write(6,*) "In main, before cgem_step, TC_8:",TC_8
 
 do istep=1,nstep
 call cgem_step(TC_8,istep,ivar,ivark)
+
+ff(:,:) = ff(:,:) + ff_new(:,:)*dTd
+
 TC_8 = TC_8 + dT
 call grid_update(TC_8)
 enddo

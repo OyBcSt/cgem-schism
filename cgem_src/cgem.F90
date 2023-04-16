@@ -2,7 +2,7 @@ module cgem
 
 !CGEM STATE VARIABLES
 use, intrinsic :: iso_fortran_env, only: stderr => error_unit
-use grid
+use grid, only: km,dT
 !use schism_glbl, only: rkind
 
 implicit none
@@ -15,6 +15,10 @@ integer :: nospZ
 
 !misc
 real :: eps
+
+!time
+real :: dTd
+integer :: StepsPerDay
 
 !Sinking
 real, dimension(:), allocatable :: ws
@@ -160,6 +164,7 @@ integer, parameter :: i_Si      = 9 !Silica (SA, SRP) Fluxes
 
 !State Variable Array
       real,allocatable :: ff(:,:) !state variable array
+      real, allocatable :: ff_new(:,:) !sources array
 
 !----INPUT_VARS_CGEM
 !--Switches in GEM---------
@@ -268,21 +273,7 @@ real, allocatable :: betad(:)  ! Photoinhibition constant / Vmax
   real, private :: OM1_A_init,OM2_A_init,OM1_Z_init,OM2_Z_init,OM1_R_init,OM2_R_init,CDOM_init
   real, private :: Si_init,OM1_BC_init,OM2_BC_init,ALK_init,Tr_init
 
-  public  :: cgem_setup
-  private :: cgem_read, cgem_allocate, cgem_init
-
 contains
-
-subroutine cgem_setup
-
-  call cgem_dim  !Read nospA and nospZ
-  call cgem_allocate
-  call cgem_read
-  call cgem_init
-
-return
-end subroutine cgem_setup
-
 
 subroutine cgem_dim
 
@@ -558,6 +549,11 @@ write(6,*) "Begin cgem_allocate"
       allocate(ff(km,nf),stat=ierr)
       if(ierr.ne.0) write(6,*) "error in allocating:ff"
 
+      allocate(ff_new(km,nf),stat=ierr)
+      if(ierr.ne.0) write(6,*) "error in allocating:ff_new"
+      ff = 0.
+      ff_new = 0.
+
 !----allocate INPUT_VARS_CGEM
 
 !---Phytoplankton 
@@ -709,6 +705,13 @@ real tot
 #ifdef DEBUG
 write(6,*) "Begin cgem_init"
 #endif
+
+ !Initialize Time stuff
+  dTd = dT/86400.         ! Timestep length in units of days
+  !StepsPerDay = SDay / dT ! Time steps in a day
+  StepsPerDay = 86400 / dT
+
+
 
 Athresh = Athresh*volcell   ! Threshold for grazing, um^3/m3
 eps=0
