@@ -2,6 +2,9 @@
 
 CGEM (Coastal General Ecology Model) is a biogeochemical, lower trophic level ecosystem model that describes biogeochemical processes regulating carbon, oxygen, nutrients, phytoplankton, and zooplankton. 
 
+Below is link for bdy_frc branch Binder
+[![Binder](https://mybinder.org/badge_logo.svg)](https://mybinder.org/v2/gh/OyBcSt/cgem-schism/bdy_frc)
+
 ## About
 
 This repo is CGEM code<sup>**</sup> that is being reformatted into a SCHISM module.  (Sorry, no actual SCHISM here!).
