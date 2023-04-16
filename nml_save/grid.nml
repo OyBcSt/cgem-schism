@@ -7,10 +7,9 @@
 !(5) space allowed before/after '='
 
 &hydro
-!  namelist /hydro/ nea,km,iYrS,iMonS,iDayS,iHrS,iMinS,iSecS,iYrE,iMonE,iDayE,&
+!  namelist /hydro/ km,iYrS,iMonS,iDayS,iHrS,iMinS,iSecS,iYrE,iMonE,iDayE,&
 !   iHrE,iMinE,iSecE,dT,dT_out,lon_in,lat_in,depth_in,Sal_init,Temp_init
 !-dims
-nea = 1    !Number of elements
 km = 5     !Number of layers
 !-time
 iYrS = 2006       !- starting time iYrS
