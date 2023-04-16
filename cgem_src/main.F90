@@ -8,6 +8,7 @@ implicit none
 integer         :: TC_8  ! Current time in seconds since Model_dim::iYrS.
 integer         :: istep ! Current time step
 integer         :: ivar,ivark  !Which variable to print
+integer         :: k,skip
 
 !Initialize grid
 call grid_setup
@@ -33,6 +34,28 @@ do istep=1,nstep
 call cgem_step(TC_8,istep,ivar,ivark)
 
 ff(:,:) = ff(:,:) + ff_new(:,:)*dTd
+
+do k=1,km
+
+  ff(k,iA(:)) = AMAX1(ff(k,iA(:)),1.)
+  if(which_quota.eq.1) then
+    ff(k,iQn(:)) = AMAX1(ff(k,iQn(:)),QminN(:))
+  else
+    ff(k,iQn(:)) = AMIN1(AMAX1(ff(k,iQn(:)),QminN(:)),QmaxN(:))
+  endif
+  if(which_quota.eq.1) then
+    ff(k,iQp(:)) = AMAX1(ff(k,iQp(:)),QminP(:))
+  else
+    ff(k,iQp(:)) = AMIN1(AMAX1(ff(k,iQp(:)),QminP(:)),QmaxP(:))
+  endif
+  ff(k,iZ(:)) = AMAX1(ff(k,iZ(:)),1.)
+
+  skip = 3*nospA+2*nospZ+1
+
+  ff(k,skip:nf) = AMAX1(ff(k,skip:nf),0.)
+
+
+enddo
 
 TC_8 = TC_8 + dT
 call grid_update(TC_8)
