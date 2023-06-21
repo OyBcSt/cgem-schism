@@ -7,7 +7,7 @@ CGEM (Coastal General Ecology Model) is a biogeochemical, lower trophic level ec
 This repo is CGEM code<sup>**</sup> that is being reformatted into a SCHISM module.  (Sorry, no actual SCHISM here!).
 It its current state, it can be used to run and visualize CGEM equations in a 1D water column with no boundary conditions.
 
-<sup> ** *Original code base is what Cody emailed me December 7, 2023.*</sup>
+<sup> ** *Original code base is what Cody emailed me December 7, 2022.*</sup>
 
 Right now:
 - Temperature and salinity are fixed, set in grid.nml
